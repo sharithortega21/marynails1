@@ -1,0 +1,16 @@
+# Java / Maven
+target/
+*.class
+# Node
+node_modules/
+dist/
+# IDE
+.idea/
+*.iml
+.vscode/
+# Secretos
+.env
+.env.local
+# SO
+.DS_Store
+Thumbs.db
