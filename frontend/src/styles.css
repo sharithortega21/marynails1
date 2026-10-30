@@ -1,0 +1,105 @@
+:root {
+  --rosa: #d94f6f;
+  --rosa-fuerte: #c23c5d;
+  --rosa-suave: #fde8ec;
+  --fondo: #fdf5f6;
+  --tarjeta: #ffffff;
+  --texto: #332227;
+  --suave: #7d6a70;
+  --borde: #f0d9de;
+  --verde: #2f8f5b;
+  --verde-suave: #e5f5ec;
+  --ambar: #9a5b00;
+  --ambar-suave: #fff1d6;
+  --radio: 14px;
+  --sombra: 0 6px 20px rgba(180, 100, 120, 0.08);
+  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  color: var(--texto);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--fondo); min-height: 100vh; line-height: 1.45; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .5; }
+:focus-visible { outline: 3px solid var(--rosa); outline-offset: 2px; }
+.suave { color: var(--suave); }
+
+/* barra */
+.barra { display: flex; align-items: center; gap: 16px; padding: 10px 20px; background: var(--tarjeta); border-bottom: 1px solid var(--borde); position: sticky; top: 0; z-index: 5; flex-wrap: wrap; }
+.marca { display: flex; align-items: center; gap: 10px; }
+.marca-logo { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--rosa); color: #fff; font-weight: 700; font-family: Georgia, serif; }
+.marca-logo.grande { width: 56px; height: 56px; font-size: 26px; }
+.marca-nombre { font-family: Georgia, serif; font-weight: 700; font-size: 1.2rem; }
+.tabs { display: flex; gap: 6px; flex: 1; }
+.tab { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 0; border-radius: 999px; background: transparent; color: var(--suave); font-weight: 600; }
+.tab.activa { background: var(--rosa-suave); color: var(--rosa-fuerte); }
+.tab.desactivada { opacity: .45; }
+.usuario { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.icono { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--borde); border-radius: 50%; background: var(--tarjeta); color: var(--suave); }
+.icono:hover:not(:disabled) { border-color: var(--rosa); color: var(--rosa); }
+
+.contenido { max-width: 1100px; margin: 0 auto; padding: 22px 20px 60px; }
+.encabezado h2 { font-family: Georgia, serif; font-size: 1.6rem; }
+.encabezado { margin-bottom: 14px; }
+
+/* chips y filtros */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.chip { padding: 7px 13px; border: 1px solid var(--borde); background: var(--tarjeta); border-radius: 999px; font-weight: 600; font-size: .92rem; }
+.chip small { color: var(--suave); font-weight: 500; margin-left: 4px; }
+.chip.activa { background: var(--rosa); border-color: var(--rosa); color: #fff; }
+.chip.activa small { color: #ffe3ea; }
+.secundarios .chip { font-size: .86rem; }
+.filtros { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin: 14px 0 18px; }
+.buscador { display: flex; align-items: center; gap: 8px; flex: 1 1 260px; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 999px; padding: 8px 14px; color: var(--suave); }
+.buscador input { border: 0; outline: 0; background: transparent; width: 100%; color: var(--texto); }
+.buscador:focus-within { border-color: var(--rosa); }
+.interruptor { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: .93rem; }
+.interruptor input { width: 18px; height: 18px; accent-color: var(--rosa); }
+
+/* tarjetas */
+.rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.tarjeta { display: flex; flex-direction: column; gap: 10px; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: var(--radio); padding: 14px; box-shadow: var(--sombra); }
+.tarjeta.tengo { border-color: #b9e2cb; background: #fbfefc; }
+.tarjeta-cab { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.tarjeta h3 { font-size: 1rem; line-height: 1.25; overflow-wrap: anywhere; }
+.linea { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); font-weight: 700; }
+.estrella.activa { color: #e0a100; border-color: #e0a100; background: #fff8e1; }
+.etiquetas { display: flex; flex-wrap: wrap; gap: 6px; }
+.etiqueta { font-size: .75rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--rosa-suave); color: var(--rosa-fuerte); }
+.etiqueta.suave { background: #f4eeef; color: var(--suave); }
+.etiqueta.critico { background: var(--ambar-suave); color: var(--ambar); }
+.tengo-boton { margin-top: auto; display: inline-flex; justify-content: center; align-items: center; gap: 6px; padding: 8px; border: 1px dashed #d6b9c0; background: transparent; border-radius: 10px; font-weight: 700; color: var(--suave); }
+.tengo-boton.si { border: 1px solid var(--verde); background: var(--verde-suave); color: var(--verde); }
+.cantidad { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
+
+/* lista de compras */
+.lista { list-style: none; display: grid; gap: 8px; margin-bottom: 18px; }
+.lista li { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: var(--radio); padding: 12px 14px; }
+.acciones { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* botones y mensajes */
+.primario, .secundario { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border-radius: 999px; font-weight: 700; border: 1px solid var(--rosa); text-decoration: none; }
+.primario { background: var(--rosa); color: #fff; }
+.primario:hover:not(:disabled) { background: var(--rosa-fuerte); }
+.secundario { background: var(--tarjeta); color: var(--rosa-fuerte); }
+.centro { display: flex; justify-content: center; margin-top: 18px; }
+.vacio { text-align: center; color: var(--suave); padding: 28px 0; }
+.error { color: #a4243f; background: #fde8ec; border: 1px solid #f3b9c5; border-radius: 10px; padding: 8px 12px; margin: 8px 0; font-weight: 600; }
+
+/* login */
+.login { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+.login-caja { width: min(380px, 100%); background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 20px; padding: 30px 26px; box-shadow: var(--sombra); display: grid; gap: 14px; justify-items: stretch; text-align: center; }
+.login-caja .marca-logo { justify-self: center; }
+.login-caja h1 { font-family: Georgia, serif; }
+.login-caja label { display: grid; gap: 6px; text-align: left; font-weight: 600; font-size: .92rem; }
+.login-caja input { padding: 11px 13px; border: 1px solid var(--borde); border-radius: 10px; background: #fff; }
+.login-caja input:focus { border-color: var(--rosa); outline: 0; }
+
+@media (max-width: 640px) {
+  .barra { padding: 8px 12px; gap: 8px; }
+  .tab span { display: none; }
+  .tab { padding: 8px 12px; }
+  .marca-nombre { display: none; }
+  .contenido { padding: 16px 12px 50px; }
+  .rejilla { grid-template-columns: repeat(2, 1fr); }
+}
