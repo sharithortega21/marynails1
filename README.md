@@ -27,3 +27,4 @@ Nunca subas claves a GitHub: el repositorio es público. Usa variables de entorn
 
 ## Cómo trabajar
 Cada requisito (RF-xx) es un issue. Se trabaja en ramas y se une a `main` con pull request.
+Prototipo en línea.
