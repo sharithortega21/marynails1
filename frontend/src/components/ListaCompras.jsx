@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react'
 import { MessageCircle, Copy } from 'lucide-react'
 import { api } from '../api.js'
 
+function aComprar(p) {
+  const porHabitual = p.esHabitual ? Math.max(0, Number(p.cantidadHabitual) - Number(p.stockActual)) : 0
+  return Math.max(porHabitual, Number(p.porComprar))
+}
+
 export default function ListaCompras() {
   const [items, setItems] = useState([])
   const [error, setError] = useState('')
@@ -13,9 +18,20 @@ export default function ListaCompras() {
   }, [])
 
   const texto = 'Lista de compras Mary Nails:\n' + items.map((p) => {
-    const falta = p.esHabitual ? Math.max(0, Number(p.cantidadHabitual) - Number(p.stockActual)) : 0
+    const falta = aComprar(p)
     return `- ${p.linea ? `${p.linea} ${p.codigo}` : p.nombre}${falta > 1 ? ` x${falta}` : ''}`
   }).join('\n')
+
+  async function yaCompre(p) {
+    try {
+      const stock = Number(p.stockActual)
+      const nuevo = p.esHabitual ? Math.max(stock, Number(p.cantidadHabitual)) : stock + Number(p.porComprar)
+      await api.actualizar(p.id, { stockActual: nuevo, porComprar: 0 })
+      setItems((prev) => prev.filter((x) => x.id !== p.id))
+    } catch (e) {
+      setError(e.message)
+    }
+  }
 
   async function copiar() {
     try {
@@ -31,7 +47,7 @@ export default function ListaCompras() {
     <section>
       <div className="encabezado">
         <h2>Lista de compras</h2>
-        <p className="suave">Los habituales que tienes por debajo de la cantidad que quieres, y lo crítico que llegó al mínimo.</p>
+        <p className="suave">Lo que marcaste con “Quiero comprar”, los habituales que tienes por debajo de la cantidad que quieres, y lo crítico que llegó al mínimo.</p>
       </div>
 
       {error && <p className="error" role="alert">{error}</p>}
@@ -49,9 +65,8 @@ export default function ListaCompras() {
               {p.esCritico && <span className="etiqueta critico">Crítico</span>}
               {p.esHabitual && <span className="etiqueta">Habitual</span>}
               <span className="etiqueta suave">Tengo {Number(p.stockActual)}</span>
-              {p.esHabitual && Number(p.cantidadHabitual) > 0 && (
-                <span className="etiqueta">Quiero {Number(p.cantidadHabitual)} · faltan {Math.max(0, Number(p.cantidadHabitual) - Number(p.stockActual))}</span>
-              )}
+              <span className="etiqueta">Comprar {aComprar(p)}</span>
+              <button className="secundario pequeno" onClick={() => yaCompre(p)}>Ya lo compré</button>
             </div>
           </li>
         ))}

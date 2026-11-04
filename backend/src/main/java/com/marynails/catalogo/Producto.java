@@ -18,6 +18,7 @@ public class Producto {
     private BigDecimal stockActual = BigDecimal.ZERO;
     private BigDecimal stockMinimo = BigDecimal.ZERO;
     private BigDecimal cantidadHabitual = BigDecimal.ZERO;
+    private BigDecimal porComprar = BigDecimal.ZERO;
     private boolean esHabitual;
     private boolean esCritico;
     private String imagenUrl;
@@ -32,6 +33,8 @@ public class Producto {
     public void setStockMinimo(BigDecimal v) { this.stockMinimo = v; }
     public BigDecimal getCantidadHabitual() { return cantidadHabitual; }
     public void setCantidadHabitual(BigDecimal v) { this.cantidadHabitual = v; }
+    public BigDecimal getPorComprar() { return porComprar; }
+    public void setPorComprar(BigDecimal v) { this.porComprar = v; }
     public boolean isEsHabitual() { return esHabitual; }
     public void setEsHabitual(boolean v) { this.esHabitual = v; }
     public boolean isEsCritico() { return esCritico; }

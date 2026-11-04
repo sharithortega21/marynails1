@@ -11,7 +11,7 @@ public class ProductoService {
 
     /** Cambios parciales: solo se actualizan los campos que vienen. */
     public record Cambios(Boolean esHabitual, Boolean esCritico, BigDecimal stockActual, BigDecimal stockMinimo,
-                         BigDecimal cantidadHabitual) {}
+                         BigDecimal cantidadHabitual, BigDecimal porComprar) {}
 
     private final ProductoRepository productos;
     private final MovimientoRepository movimientos;
@@ -34,6 +34,10 @@ public class ProductoService {
         if (c.cantidadHabitual() != null) {
             validarNoNegativo(c.cantidadHabitual());
             p.setCantidadHabitual(c.cantidadHabitual());
+        }
+        if (c.porComprar() != null) {
+            validarNoNegativo(c.porComprar());
+            p.setPorComprar(c.porComprar());
         }
         if (c.stockActual() != null) {
             validarNoNegativo(c.stockActual());

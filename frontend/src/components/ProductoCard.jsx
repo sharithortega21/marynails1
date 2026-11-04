@@ -1,4 +1,4 @@
-import { Star, Plus, Minus, Check } from 'lucide-react'
+import { Star, Plus, Minus, Check, ShoppingCart, X } from 'lucide-react'
 
 const ACABADOS = {
   CREMOSO: 'Cremoso', PERLADO: 'Perlado', TRASLUCIDO: 'Traslúcido', METALIZADO: 'Metalizado',
@@ -50,6 +50,19 @@ export default function ProductoCard({ p, onCambiar }) {
           <span><strong>{stock}</strong> {p.unidad ? `(${p.unidad})` : 'en stock'}</span>
           <button className="icono" onClick={() => onCambiar(p.id, { stockActual: stock + 1 })} aria-label="Sumar uno"><Plus size={16} /></button>
         </div>
+      )}
+      {!p.esHabitual && (
+        Number(p.porComprar) > 0 ? (
+          <div className="cantidad habitual por-comprar">
+            <span className="etiqueta"><ShoppingCart size={13} /> Por comprar</span>
+            <button className="icono" onClick={() => onCambiar(p.id, { porComprar: Math.max(1, Number(p.porComprar) - 1) })} aria-label="Comprar uno menos" disabled={Number(p.porComprar) <= 1}><Minus size={16} /></button>
+            <strong>{Number(p.porComprar)}</strong>
+            <button className="icono" onClick={() => onCambiar(p.id, { porComprar: Number(p.porComprar) + 1 })} aria-label="Comprar uno más"><Plus size={16} /></button>
+            <button className="icono" onClick={() => onCambiar(p.id, { porComprar: 0 })} aria-label="Quitar de la lista de compras" title="Quitar de compras"><X size={16} /></button>
+          </div>
+        ) : (
+          <button className="secundario quiero-comprar" onClick={() => onCambiar(p.id, { porComprar: 1 })}><ShoppingCart size={15} /> Quiero comprar</button>
+        )
       )}
       {p.esHabitual && (
         <div className="cantidad habitual" title="Cuántas quieres tener siempre; si tienes menos, pasa a la lista de compras">
