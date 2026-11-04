@@ -50,4 +50,10 @@ export const api = {
   crearCita: (c) => pedir('/api/citas', { method: 'POST', body: JSON.stringify(c) }),
   cambiarCita: (id, c) => pedir(`/api/citas/${id}`, { method: 'PATCH', body: JSON.stringify(c) }),
   borrarCita: (id) => pedir(`/api/citas/${id}`, { method: 'DELETE' }),
+  compras: (desde, hasta) => pedir('/api/compras?' + new URLSearchParams({ desde, hasta })),
+  registrarCompra: (c) => pedir('/api/compras', { method: 'POST', body: JSON.stringify(c) }),
+  gastos: (desde, hasta) => pedir('/api/gastos?' + new URLSearchParams({ desde, hasta })),
+  crearGasto: (g) => pedir('/api/gastos', { method: 'POST', body: JSON.stringify(g) }),
+  borrarGasto: (id) => pedir(`/api/gastos/${id}`, { method: 'DELETE' }),
+  resumen: (desde, hasta) => pedir('/api/finanzas/resumen?' + new URLSearchParams({ desde, hasta })),
 }

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { LogOut, Palette, ShoppingBag, CalendarDays, Users } from 'lucide-react'
+import { LogOut, Palette, ShoppingBag, CalendarDays, Users, Home, Wallet } from 'lucide-react'
 import { api, hayToken, setToken } from './api.js'
 import Login from './components/Login.jsx'
 import Catalogo from './components/Catalogo.jsx'
-import ListaCompras from './components/ListaCompras.jsx'
+import Compras from './components/Compras.jsx'
+import Inicio from './components/Inicio.jsx'
+import Finanzas from './components/Finanzas.jsx'
 import Agenda from './components/Agenda.jsx'
 import Clientas from './components/Clientas.jsx'
 
@@ -13,7 +15,7 @@ function leerUsuario() {
 
 export default function App() {
   const [usuario, setUsuario] = useState(() => (hayToken() ? leerUsuario() : null))
-  const [vista, setVista] = useState('catalogo')
+  const [vista, setVista] = useState('inicio')
 
   useEffect(() => {
     const salir = () => setUsuario(null)
@@ -43,17 +45,23 @@ export default function App() {
           <span className="marca-nombre">Mary Nails</span>
         </div>
         <nav className="tabs">
-          <button className={vista === 'catalogo' ? 'tab activa' : 'tab'} onClick={() => setVista('catalogo')}>
-            <Palette size={18} /> <span>Catálogo</span>
-          </button>
-          <button className={vista === 'compras' ? 'tab activa' : 'tab'} onClick={() => setVista('compras')}>
-            <ShoppingBag size={18} /> <span>Lista de compras</span>
+          <button className={vista === 'inicio' ? 'tab activa' : 'tab'} onClick={() => setVista('inicio')}>
+            <Home size={18} /> <span>Inicio</span>
           </button>
           <button className={vista === 'agenda' ? 'tab activa' : 'tab'} onClick={() => setVista('agenda')}>
             <CalendarDays size={18} /> <span>Agenda</span>
           </button>
           <button className={vista === 'clientas' ? 'tab activa' : 'tab'} onClick={() => setVista('clientas')}>
             <Users size={18} /> <span>Clientas</span>
+          </button>
+          <button className={vista === 'catalogo' ? 'tab activa' : 'tab'} onClick={() => setVista('catalogo')}>
+            <Palette size={18} /> <span>Catálogo</span>
+          </button>
+          <button className={vista === 'compras' ? 'tab activa' : 'tab'} onClick={() => setVista('compras')}>
+            <ShoppingBag size={18} /> <span>Compras</span>
+          </button>
+          <button className={vista === 'finanzas' ? 'tab activa' : 'tab'} onClick={() => setVista('finanzas')}>
+            <Wallet size={18} /> <span>Finanzas</span>
           </button>
         </nav>
         <div className="usuario">
@@ -64,7 +72,7 @@ export default function App() {
         </div>
       </header>
       <main className="contenido">
-        {vista === 'catalogo' ? <Catalogo /> : vista === 'compras' ? <ListaCompras /> : vista === 'clientas' ? <Clientas /> : <Agenda />}
+        {vista === 'inicio' ? <Inicio ir={setVista} /> : vista === 'catalogo' ? <Catalogo /> : vista === 'compras' ? <Compras /> : vista === 'clientas' ? <Clientas /> : vista === 'finanzas' ? <Finanzas /> : <Agenda />}
       </main>
     </div>
   )
