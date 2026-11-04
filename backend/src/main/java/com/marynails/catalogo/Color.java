@@ -11,6 +11,7 @@ public class Color {
     private String codigo;
     private String acabado;
     private String familiaColor;
+    private String hex;
 
     protected Color() {}
 }

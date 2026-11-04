@@ -14,6 +14,10 @@ export default function ProductoCard({ p, onCambiar }) {
 
   return (
     <article className={tengo ? 'tarjeta tengo' : 'tarjeta'}>
+      {esColor && (
+        <div className={p.hex ? 'muestra' : 'muestra sin-color'} style={p.hex ? { background: p.hex } : undefined}
+             title={p.hex ? `${p.linea} ${p.codigo} · ${p.hex}` : 'Color por cargar'} aria-hidden="true" />
+      )}
       <div className="tarjeta-cab">
         <div>
           {esColor && <span className="linea">{p.linea}</span>}

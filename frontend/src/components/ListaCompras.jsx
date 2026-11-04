@@ -4,7 +4,7 @@ import { api } from '../api.js'
 
 function aComprar(p) {
   const porHabitual = p.esHabitual ? Math.max(0, Number(p.cantidadHabitual) - Number(p.stockActual)) : 0
-  return Math.max(porHabitual, Number(p.porComprar))
+  return Math.max(1, porHabitual, Number(p.porComprar))
 }
 
 export default function ListaCompras() {
