@@ -154,3 +154,10 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .ventana-cab { display: flex; justify-content: space-between; align-items: center; }
 .ventana-cab h3 { font-family: Georgia, serif; font-size: 1.3rem; }
 @media (max-width: 640px) { .cita { flex-direction: column; gap: 4px; } .cita-hora { width: auto; } }
+
+/* clientas */
+.lista.clientas li { align-items: flex-start; }
+.lista.clientas li.toca { border-left: 5px solid var(--ambar); background: #fffaf0; }
+.cl-datos { display: grid; gap: 2px; min-width: 0; flex: 1 1 260px; }
+.cl-meta { font-size: .85rem; }
+.lista.clientas .etiquetas { align-items: center; justify-content: flex-end; }

@@ -110,10 +110,10 @@ public class AgendaController {
 
     // ---------- citas ----------
 
-    public record CitaNueva(Long clienteId, Long servicioId, LocalDate fecha, LocalTime hora, String lugar,
+    public record CitaNueva(Long clienteId, Long servicioId, LocalDate fecha, LocalTime hora, Integer turnos, String lugar,
                             String observaciones, BigDecimal precioCobrado) {}
 
-    public record CitaCambios(Long servicioId, LocalDate fecha, LocalTime hora, String lugar, String estado,
+    public record CitaCambios(Long servicioId, LocalDate fecha, LocalTime hora, Integer turnos, String lugar, String estado,
                               BigDecimal precioCobrado, BigDecimal extraDiseno, BigDecimal valorPagado,
                               String medioPago, String observaciones) {}
 
@@ -135,8 +135,11 @@ public class AgendaController {
         if (s == null) throw malo("Elige un servicio");
         if (in.fecha() == null) throw malo("Elige la fecha");
         if (in.hora() == null) throw malo("Elige la hora");
-        BigDecimal precio = in.precioCobrado() != null ? noNegativo(in.precioCobrado()) : s.getPrecio();
+        int turnos = in.turnos() == null ? 1 : turnos(in.turnos());
+        BigDecimal precio = in.precioCobrado() != null ? noNegativo(in.precioCobrado())
+                : s.getPrecio().multiply(BigDecimal.valueOf(turnos));
         Cita c = new Cita(in.clienteId(), s.getId(), in.fecha(), in.hora(), precio);
+        c.setTurnos((short) turnos);
         if (in.lugar() != null) c.setLugar(valido(in.lugar(), LUGARES, "El lugar no es válido"));
         if (in.observaciones() != null) c.setObservaciones(limpio(in.observaciones()));
         citas.saveAndFlush(c);
@@ -147,10 +150,12 @@ public class AgendaController {
     @Transactional
     public CitaDto cambiarCita(@PathVariable Long id, @RequestBody CitaCambios in) {
         Cita c = citas.findById(id).orElseThrow(() -> noExiste("Cita"));
-        if (in.servicioId() != null) {
-            Servicio s = servicios.findById(in.servicioId()).orElseThrow(() -> malo("Ese servicio no existe"));
+        if (in.servicioId() != null || in.turnos() != null) {
+            Servicio s = servicios.findById(in.servicioId() != null ? in.servicioId() : c.getServicioId())
+                    .orElseThrow(() -> malo("Ese servicio no existe"));
             c.setServicioId(s.getId());
-            if (in.precioCobrado() == null) c.setPrecioCobrado(s.getPrecio());
+            if (in.turnos() != null) c.setTurnos((short) turnos(in.turnos()));
+            if (in.precioCobrado() == null) c.setPrecioCobrado(s.getPrecio().multiply(BigDecimal.valueOf(c.getTurnos())));
         }
         if (in.fecha() != null) c.setFecha(in.fecha());
         if (in.hora() != null) c.setHora(in.hora());
@@ -185,6 +190,11 @@ public class AgendaController {
 
     private static String valido(String v, Set<String> permitidos, String mensaje) {
         if (!permitidos.contains(v)) throw malo(mensaje);
+        return v;
+    }
+
+    private static int turnos(Integer v) {
+        if (v < 1 || v > 30) throw malo("Los turnos deben ser entre 1 y 30");
         return v;
     }
 

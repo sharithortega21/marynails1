@@ -15,6 +15,7 @@ export default function NuevaCita({ fechaInicial, onCerrar, onCreada }) {
   const [servicioId, setServicioId] = useState('')
   const [fecha, setFecha] = useState(fechaInicial)
   const [hora, setHora] = useState('08:00')
+  const [turnos, setTurnos] = useState(1)
   const [lugar, setLugar] = useState('DOMICILIO')
   const [obs, setObs] = useState('')
   const [c, setC] = useState({ nombre: '', telefono: '', frecuenciaDias: '', sectorId: '', barrio: '', municipio: 'Cúcuta' })
@@ -50,7 +51,7 @@ export default function NuevaCita({ fechaInicial, onCerrar, onCreada }) {
         idCliente = creada.id
       }
       const cita = await api.crearCita({
-        clienteId: Number(idCliente), servicioId: Number(servicioId), fecha, hora, lugar, observaciones: obs,
+        clienteId: Number(idCliente), servicioId: Number(servicioId), fecha, hora, turnos, lugar, observaciones: obs,
       })
       onCreada(cita)
     } catch (err) {
@@ -69,21 +70,21 @@ export default function NuevaCita({ fechaInicial, onCerrar, onCreada }) {
 
         <div className="campo">
           <div className="campo-fila">
-            <span className="etiqueta-campo">Clienta</span>
+            <span className="etiqueta-campo">Clienta, familia o dirección</span>
             <button type="button" className="enlace-boton" onClick={() => setNueva(!nueva)}>
               {nueva ? 'Elegir una que ya existe' : '+ Clienta nueva'}
             </button>
           </div>
           {!nueva ? (
             <select value={clienteId} onChange={(e) => setClienteId(e.target.value)} required>
-              <option value="">Elige una clienta…</option>
+              <option value="">Elige…</option>
               {clientas.map((x) => (
                 <option key={x.id} value={x.id}>{x.nombre}{x.barrio ? ` · ${x.barrio}` : ''}</option>
               ))}
             </select>
           ) : (
             <div className="subcampos">
-              <input placeholder="Nombre" value={c.nombre} onChange={(e) => setC({ ...c, nombre: e.target.value })} required />
+              <input placeholder="Nombre (persona, familia o dirección)" value={c.nombre} onChange={(e) => setC({ ...c, nombre: e.target.value })} required />
               <input placeholder="Teléfono (WhatsApp)" inputMode="tel" value={c.telefono} onChange={(e) => setC({ ...c, telefono: e.target.value })} />
               <select value={c.sectorId} onChange={(e) => setC({ ...c, sectorId: e.target.value })}>
                 <option value="">Sector / barrio…</option>
@@ -112,8 +113,17 @@ export default function NuevaCita({ fechaInicial, onCerrar, onCreada }) {
             <option value="">Elige un servicio…</option>
             {servicios.map((s) => <option key={s.id} value={s.id}>{s.nombre} · {pesos(s.precio)}</option>)}
           </select>
-          {servicio && <small className="suave">Dura unos {servicio.duracionMin} min. Puedes cambiar el precio después.</small>}
         </label>
+
+        <div className="campo">
+          <span className="etiqueta-campo">¿Cuántos turnos?</span>
+          <div className="cantidad habitual" style={{ borderTop: 0, paddingTop: 0 }}>
+            <button type="button" className="icono" onClick={() => setTurnos(Math.max(1, turnos - 1))} aria-label="Un turno menos" disabled={turnos <= 1}>−</button>
+            <strong>{turnos}</strong>
+            <button type="button" className="icono" onClick={() => setTurnos(Math.min(30, turnos + 1))} aria-label="Un turno más">+</button>
+            {servicio && <small className="suave">{turnos} × {pesos(servicio.precio)} = <b>{pesos(Number(servicio.precio) * turnos)}</b> · unos {servicio.duracionMin * turnos} min. El cobro lo puedes ajustar después.</small>}
+          </div>
+        </div>
 
         <div className="dos">
           <label className="campo">

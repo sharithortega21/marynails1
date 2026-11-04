@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { LogOut, Palette, ShoppingBag, CalendarDays } from 'lucide-react'
+import { LogOut, Palette, ShoppingBag, CalendarDays, Users } from 'lucide-react'
 import { api, hayToken, setToken } from './api.js'
 import Login from './components/Login.jsx'
 import Catalogo from './components/Catalogo.jsx'
 import ListaCompras from './components/ListaCompras.jsx'
 import Agenda from './components/Agenda.jsx'
+import Clientas from './components/Clientas.jsx'
 
 function leerUsuario() {
   try { return JSON.parse(sessionStorage.getItem('mn_usuario')) } catch { return null }
@@ -51,6 +52,9 @@ export default function App() {
           <button className={vista === 'agenda' ? 'tab activa' : 'tab'} onClick={() => setVista('agenda')}>
             <CalendarDays size={18} /> <span>Agenda</span>
           </button>
+          <button className={vista === 'clientas' ? 'tab activa' : 'tab'} onClick={() => setVista('clientas')}>
+            <Users size={18} /> <span>Clientas</span>
+          </button>
         </nav>
         <div className="usuario">
           <span>{usuario.nombre}</span>
@@ -60,7 +64,7 @@ export default function App() {
         </div>
       </header>
       <main className="contenido">
-        {vista === 'catalogo' ? <Catalogo /> : vista === 'compras' ? <ListaCompras /> : <Agenda />}
+        {vista === 'catalogo' ? <Catalogo /> : vista === 'compras' ? <ListaCompras /> : vista === 'clientas' ? <Clientas /> : <Agenda />}
       </main>
     </div>
   )

@@ -15,6 +15,7 @@ public class Cita {
     private Long servicioId;
     private LocalDate fecha;
     private LocalTime hora;
+    private Short turnos = 1;
     private String lugar = "DOMICILIO";
     private String estado = "PROGRAMADA";
     private BigDecimal precioCobrado = BigDecimal.ZERO;
@@ -41,6 +42,8 @@ public class Cita {
     public void setFecha(LocalDate v) { this.fecha = v; }
     public LocalTime getHora() { return hora; }
     public void setHora(LocalTime v) { this.hora = v; }
+    public Short getTurnos() { return turnos; }
+    public void setTurnos(Short v) { this.turnos = v; }
     public String getLugar() { return lugar; }
     public void setLugar(String v) { this.lugar = v; }
     public String getEstado() { return estado; }

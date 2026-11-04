@@ -24,6 +24,7 @@ function CitaTarjeta({ c, onCambiar, onBorrar }) {
   const [medio, setMedio] = useState(c.medioPago || 'EFECTIVO')
   const [fecha, setFecha] = useState(c.fecha)
   const [hora, setHora] = useState(c.hora.slice(0, 5))
+  const [turnos, setTurnos] = useState(c.turnos)
   const [etiqueta, clase] = ESTADOS[c.estado]
   const programada = c.estado === 'PROGRAMADA'
   const enlace = whatsapp(c.telefono, `Hola ${c.cliente.split(' ')[0]}, te confirmo tu cita de uñas el ${nombreDia(c.fecha)} ${diaMes(c.fecha)} a las ${hora12(c.hora)}. ¡Nos vemos!`)
@@ -40,7 +41,7 @@ function CitaTarjeta({ c, onCambiar, onBorrar }) {
           <span><MapPin size={13} /> {c.barrio ? `${c.barrio} · ${c.municipio}` : 'Sin sector'}</span>
           <span>{c.lugar === 'CASA_MARY' ? <><Home size={13} /> Casa de Mary</> : 'A domicilio'}</span>
         </div>
-        <div className="cita-servicio">{c.servicio} <span className="suave">· {c.duracionMin} min · {pesos(Number(c.precioCobrado) + Number(c.extraDiseno))}</span></div>
+        <div className="cita-servicio">{c.turnos > 1 && <b>{c.turnos} turnos · </b>}{c.servicio} <span className="suave">· unos {c.duracionMin * c.turnos} min · {pesos(Number(c.precioCobrado) + Number(c.extraDiseno))}</span></div>
         {c.observaciones && <div className="suave nota">“{c.observaciones}”</div>}
         {c.estado === 'ATENDIDA' && (
           <div className="pago">Pagó {pesos(c.valorPagado)}{c.medioPago ? ` · ${c.medioPago === 'EFECTIVO' ? 'efectivo' : 'transferencia'}` : ''}
@@ -55,7 +56,7 @@ function CitaTarjeta({ c, onCambiar, onBorrar }) {
             {programada && <button className="secundario pequeno" onClick={() => onCambiar(c.id, { estado: 'CANCELADA' })}>Canceló</button>}
             {!programada && <button className="secundario pequeno" onClick={() => onCambiar(c.id, { estado: 'PROGRAMADA' })}>Volver a programada</button>}
             {c.estado === 'ATENDIDA' && <button className="secundario pequeno" onClick={() => setModo('cobro')}>Cambiar cobro</button>}
-            {programada && <button className="secundario pequeno" onClick={() => setModo('mover')}>Mover</button>}
+            {programada && <button className="secundario pequeno" onClick={() => setModo('mover')}>Editar</button>}
             {programada && enlace && <a className="secundario pequeno" href={enlace} target="_blank" rel="noreferrer"><MessageCircle size={14} /> Confirmar</a>}
             <button className="enlace-boton" onClick={() => setModo('borrar')}>Quitar</button>
           </div>
@@ -71,10 +72,11 @@ function CitaTarjeta({ c, onCambiar, onBorrar }) {
         )}
 
         {modo === 'mover' && (
-          <form className="mini-form" onSubmit={(e) => { e.preventDefault(); onCambiar(c.id, { fecha, hora }); setModo('') }}>
+          <form className="mini-form" onSubmit={(e) => { e.preventDefault(); onCambiar(c.id, { fecha, hora, ...(Number(turnos) !== c.turnos ? { turnos: Number(turnos) } : {}) }); setModo('') }}>
             <label>Fecha<input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required /></label>
             <label>Hora<input type="time" value={hora} onChange={(e) => setHora(e.target.value)} required /></label>
-            <div className="acciones"><button className="primario pequeno" type="submit">Mover</button><button type="button" className="secundario pequeno" onClick={() => setModo('')}>Cancelar</button></div>
+            <label>Turnos<input type="number" min="1" max="30" value={turnos} onChange={(e) => setTurnos(e.target.value)} required /></label>
+            <div className="acciones"><button className="primario pequeno" type="submit">Guardar</button><button type="button" className="secundario pequeno" onClick={() => setModo('')}>Cancelar</button></div>
           </form>
         )}
 
