@@ -181,7 +181,7 @@ button.kpi:hover { border-color: var(--rosa); }
 .subtabs { display: flex; gap: 8px; margin-bottom: 14px; }
 .chip.activo { background: var(--rosa-suave); border-color: var(--rosa); color: var(--rosa-fuerte); }
 .form-fila { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
-label { display: flex; flex-direction: column; gap: 3px; font-size: .88rem; color: var(--suave); font-weight: 600; }
+.form-fila label, .lineas label, .campo-busca { display: flex; flex-direction: column; gap: 3px; font-size: .88rem; color: var(--suave); font-weight: 600; }
 input, select { padding: 8px 10px; border: 1px solid var(--borde); border-radius: 10px; background: #fff; min-width: 0; }
 .campo-busca input { width: 100%; }
 .sugerencias { list-style: none; border: 1px solid var(--borde); border-radius: 10px; background: #fff; margin: 4px 0 10px; }
