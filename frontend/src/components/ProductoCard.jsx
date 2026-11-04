@@ -21,7 +21,7 @@ export default function ProductoCard({ p, onCambiar }) {
         </div>
         <button
           className={p.esHabitual ? 'icono estrella activa' : 'icono estrella'}
-          onClick={() => onCambiar(p.id, { esHabitual: !p.esHabitual })}
+          onClick={() => onCambiar(p.id, p.esHabitual ? { esHabitual: false } : { esHabitual: true, cantidadHabitual: Number(p.cantidadHabitual) > 0 ? Number(p.cantidadHabitual) : 1 })}
           aria-pressed={p.esHabitual}
           aria-label={p.esHabitual ? 'Quitar de habituales' : 'Marcar como habitual'}
           title={p.esHabitual ? 'Habitual' : 'Marcar como habitual'}
@@ -49,6 +49,14 @@ export default function ProductoCard({ p, onCambiar }) {
           <button className="icono" onClick={() => onCambiar(p.id, { stockActual: Math.max(0, stock - 1) })} aria-label="Restar uno" disabled={stock <= 0}><Minus size={16} /></button>
           <span><strong>{stock}</strong> {p.unidad ? `(${p.unidad})` : 'en stock'}</span>
           <button className="icono" onClick={() => onCambiar(p.id, { stockActual: stock + 1 })} aria-label="Sumar uno"><Plus size={16} /></button>
+        </div>
+      )}
+      {p.esHabitual && (
+        <div className="cantidad habitual" title="Cuántas quieres tener siempre; si tienes menos, pasa a la lista de compras">
+          <span className="suave">Quiero tener</span>
+          <button className="icono" onClick={() => onCambiar(p.id, { cantidadHabitual: Math.max(0, Number(p.cantidadHabitual) - 1) })} aria-label="Quiero tener uno menos" disabled={Number(p.cantidadHabitual) <= 0}><Minus size={16} /></button>
+          <strong>{Number(p.cantidadHabitual)}</strong>
+          <button className="icono" onClick={() => onCambiar(p.id, { cantidadHabitual: Number(p.cantidadHabitual) + 1 })} aria-label="Quiero tener uno más"><Plus size={16} /></button>
         </div>
       )}
     </article>

@@ -10,7 +10,8 @@ import org.springframework.web.server.ResponseStatusException;
 public class ProductoService {
 
     /** Cambios parciales: solo se actualizan los campos que vienen. */
-    public record Cambios(Boolean esHabitual, Boolean esCritico, BigDecimal stockActual, BigDecimal stockMinimo) {}
+    public record Cambios(Boolean esHabitual, Boolean esCritico, BigDecimal stockActual, BigDecimal stockMinimo,
+                         BigDecimal cantidadHabitual) {}
 
     private final ProductoRepository productos;
     private final MovimientoRepository movimientos;
@@ -29,6 +30,10 @@ public class ProductoService {
         if (c.stockMinimo() != null) {
             validarNoNegativo(c.stockMinimo());
             p.setStockMinimo(c.stockMinimo());
+        }
+        if (c.cantidadHabitual() != null) {
+            validarNoNegativo(c.cantidadHabitual());
+            p.setCantidadHabitual(c.cantidadHabitual());
         }
         if (c.stockActual() != null) {
             validarNoNegativo(c.stockActual());

@@ -6,5 +6,5 @@ import java.math.BigDecimal;
 public record ProductoDto(
         Long id, String nombre, String categoria, String modoControl,
         BigDecimal presentacion, String unidad, BigDecimal rendimiento,
-        BigDecimal stockActual, BigDecimal stockMinimo, boolean esHabitual, boolean esCritico,
+        BigDecimal stockActual, BigDecimal stockMinimo, BigDecimal cantidadHabitual, boolean esHabitual, boolean esCritico,
         String imagenUrl, String linea, String codigo, String acabado, String familiaColor) {}

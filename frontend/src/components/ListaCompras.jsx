@@ -12,7 +12,10 @@ export default function ListaCompras() {
     api.listaCompras().then(setItems).catch((e) => setError(e.message)).finally(() => setCargando(false))
   }, [])
 
-  const texto = 'Lista de compras Mary Nails:\n' + items.map((p) => `- ${p.linea ? `${p.linea} ${p.codigo}` : p.nombre}`).join('\n')
+  const texto = 'Lista de compras Mary Nails:\n' + items.map((p) => {
+    const falta = p.esHabitual ? Math.max(0, Number(p.cantidadHabitual) - Number(p.stockActual)) : 0
+    return `- ${p.linea ? `${p.linea} ${p.codigo}` : p.nombre}${falta > 1 ? ` x${falta}` : ''}`
+  }).join('\n')
 
   async function copiar() {
     try {
@@ -28,7 +31,7 @@ export default function ListaCompras() {
     <section>
       <div className="encabezado">
         <h2>Lista de compras</h2>
-        <p className="suave">Lo habitual o crítico que ya llegó al mínimo. Cambia el mínimo de un producto para que aparezca aquí.</p>
+        <p className="suave">Los habituales que tienes por debajo de la cantidad que quieres, y lo crítico que llegó al mínimo.</p>
       </div>
 
       {error && <p className="error" role="alert">{error}</p>}
@@ -46,6 +49,9 @@ export default function ListaCompras() {
               {p.esCritico && <span className="etiqueta critico">Crítico</span>}
               {p.esHabitual && <span className="etiqueta">Habitual</span>}
               <span className="etiqueta suave">Tengo {Number(p.stockActual)}</span>
+              {p.esHabitual && Number(p.cantidadHabitual) > 0 && (
+                <span className="etiqueta">Quiero {Number(p.cantidadHabitual)} · faltan {Math.max(0, Number(p.cantidadHabitual) - Number(p.stockActual))}</span>
+              )}
             </div>
           </li>
         ))}

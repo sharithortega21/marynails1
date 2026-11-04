@@ -13,7 +13,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     String CAMPOS = """
             select new com.marynails.catalogo.ProductoDto(
                 p.id, p.nombre, p.categoria, p.modoControl, p.presentacion, p.unidad, p.rendimiento,
-                p.stockActual, p.stockMinimo, p.esHabitual, p.esCritico, p.imagenUrl,
+                p.stockActual, p.stockMinimo, p.cantidadHabitual, p.esHabitual, p.esCritico, p.imagenUrl,
                 c.linea, c.codigo, c.acabado, c.familiaColor)
             from Producto p left join Color c on c.productoId = p.id
             """;
@@ -44,7 +44,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     ProductoDto detalle(@Param("id") Long id);
 
     @Query(CAMPOS + """
-            where p.stockActual <= p.stockMinimo and (p.esHabitual = true or p.esCritico = true)
+            where (p.esHabitual = true and p.stockActual < p.cantidadHabitual)
+               or (p.esCritico = true and p.stockActual <= p.stockMinimo)
             order by p.esCritico desc, p.categoria, p.nombre
             """)
     List<ProductoDto> faltantes();
