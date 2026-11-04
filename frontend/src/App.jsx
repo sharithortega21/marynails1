@@ -4,6 +4,7 @@ import { api, hayToken, setToken } from './api.js'
 import Login from './components/Login.jsx'
 import Catalogo from './components/Catalogo.jsx'
 import ListaCompras from './components/ListaCompras.jsx'
+import Agenda from './components/Agenda.jsx'
 
 function leerUsuario() {
   try { return JSON.parse(sessionStorage.getItem('mn_usuario')) } catch { return null }
@@ -47,7 +48,7 @@ export default function App() {
           <button className={vista === 'compras' ? 'tab activa' : 'tab'} onClick={() => setVista('compras')}>
             <ShoppingBag size={18} /> <span>Lista de compras</span>
           </button>
-          <button className="tab desactivada" disabled title="Próximamente">
+          <button className={vista === 'agenda' ? 'tab activa' : 'tab'} onClick={() => setVista('agenda')}>
             <CalendarDays size={18} /> <span>Agenda</span>
           </button>
         </nav>
@@ -59,7 +60,7 @@ export default function App() {
         </div>
       </header>
       <main className="contenido">
-        {vista === 'catalogo' ? <Catalogo /> : <ListaCompras />}
+        {vista === 'catalogo' ? <Catalogo /> : vista === 'compras' ? <ListaCompras /> : <Agenda />}
       </main>
     </div>
   )

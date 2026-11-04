@@ -25,10 +25,11 @@ async function pedir(ruta, opciones = {}) {
     window.dispatchEvent(new Event('mn-sesion-expirada'))
   }
   if (!res.ok) {
-    let msg = 'Algo salió mal'
-    try { msg = (await res.json()).message || (res.status === 401 ? 'Correo o clave incorrectos' : msg) } catch { /* sin cuerpo */ }
+    let msg = res.status === 401 ? 'Correo o clave incorrectos' : 'Algo salió mal'
+    try { msg = (await res.json()).message || msg } catch { /* sin cuerpo */ }
     throw new Error(msg)
   }
+  if (res.status === 204) return null
   return res.json()
 }
 
@@ -39,4 +40,14 @@ export const api = {
   productos: (p) => pedir('/api/productos?' + new URLSearchParams(p)),
   actualizar: (id, cambios) => pedir(`/api/productos/${id}`, { method: 'PATCH', body: JSON.stringify(cambios) }),
   listaCompras: () => pedir('/api/lista-compras'),
+  servicios: () => pedir('/api/servicios'),
+  sectores: () => pedir('/api/sectores'),
+  crearSector: (s) => pedir('/api/sectores', { method: 'POST', body: JSON.stringify(s) }),
+  clientas: () => pedir('/api/clientas'),
+  crearClienta: (c) => pedir('/api/clientas', { method: 'POST', body: JSON.stringify(c) }),
+  editarClienta: (id, c) => pedir(`/api/clientas/${id}`, { method: 'PATCH', body: JSON.stringify(c) }),
+  citas: (desde, hasta) => pedir('/api/citas?' + new URLSearchParams({ desde, hasta })),
+  crearCita: (c) => pedir('/api/citas', { method: 'POST', body: JSON.stringify(c) }),
+  cambiarCita: (id, c) => pedir(`/api/citas/${id}`, { method: 'PATCH', body: JSON.stringify(c) }),
+  borrarCita: (id) => pedir(`/api/citas/${id}`, { method: 'DELETE' }),
 }
