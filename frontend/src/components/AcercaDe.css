@@ -1,0 +1,11 @@
+.acerca-tarjeta {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+.acerca-tarjeta h3 { margin-top: 0; }
+.acerca-tarjeta ul { padding-left: 20px; margin: 8px 0; }
+.acerca-nota { display: flex; align-items: center; gap: 6px; color: #777; font-size: 0.9rem; }
+.acerca-enlace { display: inline-flex; align-items: center; gap: 4px; color: #b5547a; font-weight: 600; margin-left: 8px; }
