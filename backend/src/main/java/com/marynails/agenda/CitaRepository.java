@@ -8,6 +8,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface CitaRepository extends JpaRepository<Cita, Long> {
 
+    // Sirve para saber si un servicio ya se uso en alguna cita
+    boolean existsByServicioId(Long servicioId);
+
     String CAMPOS = """
             select new com.marynails.agenda.CitaDto(
                 c.id, c.clienteId, cl.nombre, cl.telefono, s.barrio, s.municipio, cl.direccion,

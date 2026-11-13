@@ -1,5 +1,7 @@
 package com.marynails.agenda;
 
+import com.marynails.model.Servicio;
+import com.marynails.repository.ServicioRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -33,16 +35,7 @@ public class AgendaController {
         this.citas = citas;
     }
 
-    // ---------- servicios y sectores ----------
-
-    public record ServicioDto(Long id, String nombre, BigDecimal precio, String familia, Short duracionMin) {}
-
-    @GetMapping("/servicios")
-    public List<ServicioDto> servicios() {
-        return servicios.findAllByOrderByIdAsc().stream()
-                .map(s -> new ServicioDto(s.getId(), s.getNombre(), s.getPrecio(), s.getFamilia(), s.getDuracionMin()))
-                .toList();
-    }
+    // ---------- sectores (los servicios tienen su propio controller) ----------
 
     public record SectorDto(Long id, String barrio, String municipio) {}
 
