@@ -26,7 +26,11 @@ async function pedir(ruta, opciones = {}) {
   }
   if (!res.ok) {
     let msg = res.status === 401 ? 'Correo o clave incorrectos' : 'Algo salió mal'
-    try { msg = (await res.json()).message || msg } catch { /* sin cuerpo */ }
+    try {
+      // La API responde {message}, {error} o, en las validaciones, un objeto {campo: mensaje}
+      const cuerpo = await res.json()
+      msg = cuerpo.message || cuerpo.error || Object.values(cuerpo).filter((v) => typeof v === 'string').join('. ') || msg
+    } catch { /* sin cuerpo */ }
     throw new Error(msg)
   }
   if (res.status === 204) return null
@@ -41,6 +45,10 @@ export const api = {
   actualizar: (id, cambios) => pedir(`/api/productos/${id}`, { method: 'PATCH', body: JSON.stringify(cambios) }),
   listaCompras: () => pedir('/api/lista-compras'),
   servicios: () => pedir('/api/servicios'),
+  buscarServicios: (nombre) => pedir('/api/servicios/buscar?' + new URLSearchParams({ nombre })),
+  crearServicio: (s) => pedir('/api/servicios', { method: 'POST', body: JSON.stringify(s) }),
+  editarServicio: (id, s) => pedir(`/api/servicios/${id}`, { method: 'PUT', body: JSON.stringify(s) }),
+  borrarServicio: (id) => pedir(`/api/servicios/${id}`, { method: 'DELETE' }),
   sectores: () => pedir('/api/sectores'),
   crearSector: (s) => pedir('/api/sectores', { method: 'POST', body: JSON.stringify(s) }),
   clientas: () => pedir('/api/clientas'),
