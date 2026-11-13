@@ -212,3 +212,14 @@ input, select { padding: 8px 10px; border: 1px solid var(--borde); border-radius
 .form-gasto { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .form-gasto input[type=number] { width: 110px; }
 .form-gasto input[aria-label=Nota] { flex: 1 1 140px; }
+
+/* servicios */
+.form-servicio { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; align-items: end; margin-bottom: 12px; background: var(--tarjeta); border: 1px solid var(--borde); border-radius: var(--radio); padding: 14px; }
+.form-servicio label { display: flex; flex-direction: column; gap: 3px; font-size: .88rem; color: var(--suave); font-weight: 600; }
+.botones-form { display: flex; gap: 8px; flex-wrap: wrap; }
+.buscador-servicios { display: flex; align-items: center; gap: 8px; margin: 12px 0; padding: 0 12px; border: 1px solid var(--borde); border-radius: 999px; background: #fff; }
+.buscador-servicios input { border: 0; flex: 1; padding: 9px 0; outline: none; background: transparent; }
+.fila-servicio { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fila-servicio .datos-servicio { flex: 1 1 200px; display: flex; flex-direction: column; }
+.fila-servicio .acciones { display: flex; gap: 6px; align-items: center; }
+.chip.peligro { background: #fbe9ec; border-color: #d98a99; color: #a4243f; }

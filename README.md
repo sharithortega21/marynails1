@@ -7,11 +7,15 @@ Autora: Sharith Stefany Ortega Robles. Universidad de Pamplona. Ingeniería de S
 ## Estructura
 - `backend/`  API REST (Spring Boot, Java 21, JPA/Hibernate, Flyway)
 - `frontend/` Aplicación web (React con Vite, JavaScript)
-- `docs/`     Documentación, modelo de datos y decisiones (`docs/adr/`)
+- `database/` Scripts de PostgreSQL (crear, llenar y consultar la base)
+- `docs/`     Documentación, pruebas, Postman y decisiones (`docs/adr/`)
 - `.github/workflows/` Integración continua
 
+Explicación detallada de cada carpeta: [`docs/ESTRUCTURA_DEL_PROYECTO.md`](docs/ESTRUCTURA_DEL_PROYECTO.md).
+Entrega de la guía de Spring Boot (CRUD de Servicio): [`docs/GUIA_ENTREGA_SPRING_BOOT.md`](docs/GUIA_ENTREGA_SPRING_BOOT.md).
+
 ## Lo que ya funciona (prototipo)
-Inicio de sesión, catálogo con 589 productos y 541 colores (Masglo, Gel Evolution y Gelpolish) con filtros, marcar "lo tengo" y "habitual", y lista de compras con envío por WhatsApp.
+Inicio de sesión, Inicio con citas de hoy y alertas, Agenda con turnos, Clientas con recontacto, CRUD de Servicios, catálogo con 510 colores (Masglo, Gel Evolution y Gelpolish), Compras con registro de entradas y Finanzas con ingresos y gastos.
 
 ## Base de datos
 PostgreSQL en Supabase. El esquema y los datos iniciales están en `backend/src/main/resources/db/migration`; Flyway los aplica al iniciar el backend.
