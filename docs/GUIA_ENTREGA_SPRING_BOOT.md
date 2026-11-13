@@ -55,6 +55,7 @@ Todas piden iniciar sesión (token JWT): sin token responden **401**.
 - Antes `Servicio` solo se podía consultar (estaba dentro del módulo de agenda). Ahora tiene su propio CRUD completo con las 4 capas.
 - Se agregó la pantalla **Servicios** al menú del frontend.
 - `api.js` ahora entiende los mensajes de error del backend (validaciones y reglas del negocio).
+- Se agregó el Maven Wrapper (`mvnw` y `mvnw.cmd`), se movió el CORS a `CorsConfig.java` y se activó `show-sql`.
 - El resto del programa (agenda, clientas, catálogo, compras y finanzas) sigue funcionando igual.
 
 ## Cómo ejecutarlo
@@ -63,11 +64,17 @@ Todas piden iniciar sesión (token JWT): sin token responden **401**.
 
 1. Crear una base vacía en PostgreSQL (por ejemplo `marynails`).
 2. Variables de entorno del backend (ver `.env.example`): `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `ADMIN_CORREO`, `ADMIN_CLAVE`, `MARY_CORREO`, `MARY_CLAVE`.
-3. Backend (desde `backend/`): `mvn spring-boot:run`. Queda en http://localhost:8080. Flyway crea las tablas solo.
+3. Backend (desde `backend/`): `./mvnw spring-boot:run` (en Windows: `mvnw.cmd spring-boot:run`). No hace falta instalar Maven: el proyecto trae su propio ejecutable. Queda en http://localhost:8080. Flyway crea las tablas solo.
 4. Frontend (desde `frontend/`): `npm install` y luego `npm run dev`. Queda en http://localhost:5173.
 5. Probar la API: importar `docs/postman/MaryNails_Servicios.postman_collection.json` en Postman, poner el correo y la clave en la petición 0 y ejecutar en orden.
 
 ## CORS
 
-La guía crea una clase `CorsConfig`. En este proyecto el permiso CORS está en `config/SecurityConfig.java`
-(bean `corsConfigurationSource`), porque con Spring Security el permiso debe declararse ahí para que funcione. El origen permitido sale de la variable `FRONTEND_URL`.
+Igual que en la guía, el permiso CORS está en su propia clase: `config/CorsConfig.java`.
+El origen permitido sale de la variable `FRONTEND_URL`. Se probó: un origen permitido recibe las cabeceras
+`Access-Control-Allow-*`, y uno no permitido recibe 403.
+
+## Consola con el SQL
+
+`application.properties` tiene `spring.jpa.show-sql=true`: al usar la API, la consola muestra el SQL real
+(`Hibernate: insert into servicio ...`, `Hibernate: select ... from servicio ...`).

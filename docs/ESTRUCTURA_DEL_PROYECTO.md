@@ -31,6 +31,8 @@ el mesero le pasa el pedido al cocinero (service) y este va a la despensa (repos
 ```
 backend/
 ├── pom.xml                          Lista de dependencias del proyecto (Maven)
+├── mvnw y mvnw.cmd                  Maven listo para usar (Mac/Linux y Windows): no hay que instalarlo
+├── .mvn/wrapper/                    Configuración del Maven Wrapper
 └── src/main/
     ├── resources/
     │   ├── application.properties   Configuración: conexión a la BD, seguridad, puerto
@@ -42,7 +44,7 @@ backend/
         ├── service/      LÓGICA DEL NEGOCIO (reglas)             -> ServicioService.java
         ├── controller/   ENDPOINTS REST (puerta de entrada)      -> ServicioController.java
         ├── exception/    Manejo de errores (respuestas 400 claras) -> ManejadorErrores.java
-        ├── config/       Seguridad (JWT) y permisos CORS         -> SecurityConfig.java
+        ├── config/       Seguridad (JWT) y permisos CORS         -> SecurityConfig.java y CorsConfig.java
         ├── auth/         Inicio de sesión y usuarios
         ├── agenda/       Citas, clientas y sectores
         ├── catalogo/     Productos, colores e inventario
