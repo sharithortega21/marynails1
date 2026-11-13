@@ -1,0 +1,91 @@
+erDiagram
+  SECTOR ||--o{ CLIENTE : agrupa
+  CLIENTE ||--o{ CITA : agenda
+  SERVICIO ||--o{ CITA : "se presta en"
+  SERVICIO }o--o{ PRODUCTO : "RECETA (usa)"
+  COMPRA }o--o{ PRODUCTO : "DETALLE_COMPRA (cantidad, costo)"
+  PRODUCTO ||--o| COLOR : "puede ser"
+  PRODUCTO ||--o{ MOVIMIENTO : registra
+
+  SECTOR {
+    int id PK
+    string barrio
+    string municipio
+  }
+  CLIENTE {
+    int id PK
+    string nombre
+    string telefono
+    string direccion
+    int sector_id FK
+    int frecuencia_dias
+    string observaciones
+  }
+  SERVICIO {
+    int id PK
+    string nombre
+    decimal precio
+    string familia
+    int duracion_min
+  }
+  CITA {
+    int id PK
+    int cliente_id FK
+    int servicio_id FK
+    date fecha
+    time hora
+    string lugar
+    string estado
+    decimal precio_cobrado
+    decimal extra_diseno
+    decimal valor_pagado
+    string medio_pago
+    string observaciones
+  }
+  PRODUCTO {
+    int id PK
+    string nombre
+    string categoria
+    string modo_control
+    decimal presentacion
+    string unidad
+    decimal rendimiento
+    decimal stock_actual
+    decimal stock_minimo
+    bool es_habitual
+    bool es_critico
+    string imagen_url
+  }
+  COLOR {
+    int producto_id PK
+    string linea
+    string codigo
+    string acabado
+    string familia_color
+  }
+  COMPRA {
+    int id PK
+    date fecha
+    string proveedor
+  }
+  MOVIMIENTO {
+    int id PK
+    int producto_id FK
+    date fecha
+    string tipo
+    decimal cantidad
+  }
+  GASTO {
+    int id PK
+    date fecha
+    string categoria
+    decimal monto
+    string descripcion
+  }
+  USUARIO {
+    int id PK
+    string nombre
+    string correo
+    string clave_hash
+    string rol
+  }
