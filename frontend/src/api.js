@@ -48,6 +48,7 @@ export const api = {
   renovar: (id) => pedir(`/api/productos/${id}/renovar`, { method: 'POST' }),
   porRenovar: () => pedir('/api/por-renovar'),
   maletin: (fecha) => pedir('/api/maletin?' + new URLSearchParams({ fecha })),
+  compraRespaldo: () => pedir('/api/compra-respaldo'),
   listaCompras: () => pedir('/api/lista-compras'),
   servicios: () => pedir('/api/servicios'),
   buscarServicios: (nombre) => pedir('/api/servicios/buscar?' + new URLSearchParams({ nombre })),

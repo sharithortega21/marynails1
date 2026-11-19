@@ -100,6 +100,35 @@ public class InventarioService {
                 .toList();
     }
 
+    /** Cada cuantos dias se hace la compra de respaldo (mes y medio). */
+    public static final int DIAS_RESPALDO = 45;
+
+    public record Respaldo(Long productoId, String nombre, String categoria, BigDecimal stockActual,
+                           LocalDate ultimaCompra, Integer diasDesdeCompra, boolean enLista) {}
+
+    /**
+     * Compra de respaldo: productos estandar marcados como respaldo cuya ultima compra fue hace
+     * 45 dias o mas (o que nunca se han comprado por el sistema).
+     */
+    public List<Respaldo> compraRespaldo() {
+        LocalDate hoy = LocalDate.now();
+        return jdbc.query("""
+                select p.id, p.nombre, p.categoria, p.stock_actual, p.por_comprar,
+                       (select max(m.fecha) from movimiento m where m.producto_id = p.id and m.tipo = 'ENTRADA') as ultima
+                from producto p
+                where p.activo = true and p.respaldo = true
+                order by p.categoria, p.nombre
+                """,
+                (rs, i) -> {
+                    java.sql.Date u = rs.getDate("ultima");
+                    LocalDate ultima = u == null ? null : u.toLocalDate();
+                    Integer dias = ultima == null ? null : (int) ChronoUnit.DAYS.between(ultima, hoy);
+                    return new Respaldo(rs.getLong("id"), rs.getString("nombre"), rs.getString("categoria"),
+                            rs.getBigDecimal("stock_actual"), ultima, dias, rs.getBigDecimal("por_comprar").signum() > 0);
+                })
+                .stream().filter(r -> r.diasDesdeCompra() == null || r.diasDesdeCompra() >= DIAS_RESPALDO).toList();
+    }
+
     public record ItemMaletin(Long productoId, String nombre, String categoria, BigDecimal stockActual,
                               boolean esCritico, int arreglos, boolean falta) {}
 

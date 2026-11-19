@@ -33,6 +33,12 @@ public class ProductoController {
         return inventario.porRenovar();
     }
 
+    /** Compra de respaldo: productos estándar que toca reponer cada mes y medio. */
+    @GetMapping("/compra-respaldo")
+    public List<InventarioService.Respaldo> compraRespaldo() {
+        return inventario.compraRespaldo();
+    }
+
     /** Lista del maletín para un día (por defecto mañana). */
     @GetMapping("/maletin")
     public List<InventarioService.ItemMaletin> maletin(@RequestParam(required = false) java.time.LocalDate fecha) {

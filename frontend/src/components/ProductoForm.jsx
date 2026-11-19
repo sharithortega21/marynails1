@@ -13,7 +13,7 @@ const FAMILIAS = ['blanco', 'nude', 'rosado', 'rojo', 'vino', 'naranja', 'amaril
 
 const vacio = {
   tipo: 'PRODUCTO', nombre: '', categoria: '', categoriaNueva: '', modoControl: 'MANUAL', presentacion: '', unidad: 'unidad',
-  rendimiento: '', stockActual: 0, stockMinimo: 0, esCritico: false, esHabitual: false, imagenUrl: '',
+  rendimiento: '', stockActual: 0, stockMinimo: 0, esCritico: false, esHabitual: false, imagenUrl: '', respaldo: false,
   linea: '', lineaNueva: '', codigo: '', acabado: 'CREMOSO', familiaColor: '', hex: '#e8a8be',
 }
 
@@ -42,7 +42,7 @@ export default function ProductoForm({ producto, categorias, lineas, onCerrar, o
       modoControl: f.modoControl, presentacion: num(f.presentacion), unidad: f.unidad,
       rendimiento: f.modoControl === 'MANUAL' ? null : num(f.rendimiento),
       stockActual: num(f.stockActual), stockMinimo: num(f.stockMinimo), esCritico: f.esCritico, esHabitual: f.esHabitual,
-      imagenUrl: f.imagenUrl,
+      imagenUrl: f.imagenUrl, respaldo: f.respaldo,
       ...(esColor ? {
         linea: f.linea === '__nueva' ? f.lineaNueva : f.linea, codigo: f.codigo, acabado: f.acabado,
         familiaColor: f.familiaColor, hex: f.hex,
@@ -206,6 +206,11 @@ export default function ProductoForm({ producto, categorias, lineas, onCerrar, o
             Habitual: lo uso siempre
           </label>
         )}
+
+        <label className="interruptor">
+          <input id="pf-respaldo" type="checkbox" checked={f.respaldo} onChange={(e) => cambiar('respaldo', e.target.checked)} />
+          Compra de respaldo: reponerlo cada mes y medio aunque no se acabe
+        </label>
 
         <label className="campo">
           <span className="etiqueta-campo">Imagen (opcional)</span>
