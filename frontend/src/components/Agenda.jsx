@@ -32,7 +32,7 @@ function googleCalendar(c) {
   return `https://calendar.google.com/calendar/render?${q}`
 }
 
-function CitaTarjeta({ c, onCambiar, onBorrar }) {
+function CitaTarjeta({ c, onCambiar, onBorrar, soloVer }) {
   const [modo, setModo] = useState('')        // '', 'cobro', 'mover', 'borrar'
   const [valor, setValor] = useState(Number(c.precioCobrado) + Number(c.extraDiseno))
   const [extra, setExtra] = useState(Number(c.extraDiseno))
@@ -56,15 +56,15 @@ function CitaTarjeta({ c, onCambiar, onBorrar }) {
           <span><MapPin size={13} /> {c.barrio ? `${c.barrio} · ${c.municipio}` : 'Sin sector'}</span>
           <span>{c.lugar === 'CASA_MARY' ? <><Home size={13} /> Casa de Mary</> : 'A domicilio'}</span>
         </div>
-        <div className="cita-servicio">{c.turnos > 1 && <b>{c.turnos} turnos · </b>}{c.servicio} <span className="suave">· unos {c.duracionMin * c.turnos} min · {pesos(Number(c.precioCobrado) + Number(c.extraDiseno))}</span></div>
+        <div className="cita-servicio">{c.turnos > 1 && <b>{c.turnos} turnos · </b>}{c.servicio} <span className="suave">· unos {c.duracionMin * c.turnos} min{c.precioCobrado != null && ` · ${pesos(Number(c.precioCobrado) + Number(c.extraDiseno))}`}</span></div>
         {c.observaciones && <div className="suave nota">“{c.observaciones}”</div>}
-        {c.estado === 'ATENDIDA' && (
+        {c.estado === 'ATENDIDA' && c.valorPagado != null && (
           <div className="pago">Pagó {pesos(c.valorPagado)}{c.medioPago ? ` · ${c.medioPago === 'EFECTIVO' ? 'efectivo' : 'transferencia'}` : ''}
             {Number(c.valorPagado) < Number(c.precioCobrado) + Number(c.extraDiseno) && <b> · debe {pesos(Number(c.precioCobrado) + Number(c.extraDiseno) - Number(c.valorPagado))}</b>}
           </div>
         )}
 
-        {modo === '' && (
+        {modo === '' && !soloVer && (
           <div className="cita-acciones">
             {programada && <button className="primario pequeno" onClick={() => setModo('cobro')}>Atendida</button>}
             {programada && <button className="secundario pequeno" onClick={() => onCambiar(c.id, { estado: 'NO_ASISTIO' })}>No vino</button>}
@@ -116,7 +116,7 @@ function CitaTarjeta({ c, onCambiar, onBorrar }) {
   )
 }
 
-export default function Agenda() {
+export default function Agenda({ soloVer = false }) {
   const [lunes, setLunes] = useState(() => lunesDe(hoy()))
   const [citas, setCitas] = useState([])
   const [cargando, setCargando] = useState(true)
@@ -153,7 +153,7 @@ export default function Agenda() {
           <h2>Agenda</h2>
           <p className="suave">Semana del {rango} · {total} {total === 1 ? 'cita' : 'citas'}</p>
         </div>
-        <button className="primario" onClick={() => setNueva(lunes <= hoyTexto && hoyTexto <= sumarDias(lunes, 5) ? hoyTexto : lunes)}><Plus size={18} /> Nueva cita</button>
+        {!soloVer && <button className="primario" onClick={() => setNueva(lunes <= hoyTexto && hoyTexto <= sumarDias(lunes, 5) ? hoyTexto : lunes)}><Plus size={18} /> Nueva cita</button>}
       </div>
 
       <div className="semana-nav">
@@ -173,9 +173,9 @@ export default function Agenda() {
             <div className="dia-cab">
               <h3>{nombreDia(d)} <span className="suave">{diaMes(d)}</span>{d === hoyTexto && <span className="etiqueta">Hoy</span>}</h3>
               <span className="suave dia-resumen">{delDia.length ? `${delDia.length} ${delDia.length === 1 ? 'cita' : 'citas'}${sectores.length ? ' · ' + sectores.join(', ') : ''}` : 'Libre'}</span>
-              <button className="icono" onClick={() => setNueva(d)} aria-label={`Agendar el ${nombreDia(d)}`}><Plus size={16} /></button>
+              {!soloVer && <button className="icono" onClick={() => setNueva(d)} aria-label={`Agendar el ${nombreDia(d)}`}><Plus size={16} /></button>}
             </div>
-            {delDia.map((c) => <CitaTarjeta key={c.id} c={c} onCambiar={cambiar} onBorrar={borrar} />)}
+            {delDia.map((c) => <CitaTarjeta key={c.id} c={c} onCambiar={cambiar} onBorrar={borrar} soloVer={soloVer} />)}
           </div>
         )
       })}

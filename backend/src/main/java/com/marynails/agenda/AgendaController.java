@@ -123,11 +123,19 @@ public class AgendaController {
     /** Citas entre dos fechas (inclusive); por defecto, la semana actual. */
     @GetMapping("/citas")
     public List<CitaDto> citas(@RequestParam(required = false) LocalDate desde,
-                               @RequestParam(required = false) LocalDate hasta) {
+                               @RequestParam(required = false) LocalDate hasta,
+                               org.springframework.security.core.Authentication quien) {
         LocalDate d = desde != null ? desde : LocalDate.now().with(java.time.DayOfWeek.MONDAY);
         LocalDate h = hasta != null ? hasta : d.plusDays(6);
         if (h.isBefore(d) || d.plusDays(120).isBefore(h)) throw malo("El rango de fechas no es válido");
-        return citas.entre(d, h);
+        List<CitaDto> lista = citas.entre(d, h);
+        boolean esMary = quien != null && quien.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_PROPIETARIA".equals(a.getAuthority()));
+        if (esMary) return lista;
+        // Sharith ve la agenda para preparar el maletin, sin dinero, telefono ni notas de las clientas
+        return lista.stream().map(c -> new CitaDto(c.id(), c.clienteId(), c.cliente(), null, c.barrio(), c.municipio(),
+                null, c.servicioId(), c.servicio(), c.duracionMin(), c.fecha(), c.hora(), c.turnos(), c.lugar(),
+                c.estado(), null, null, null, null, null)).toList();
     }
 
     @PostMapping("/citas")

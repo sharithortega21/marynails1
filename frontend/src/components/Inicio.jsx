@@ -14,11 +14,14 @@ export default function Inicio({ ir, usuario }) {
     const h = hoy()
     const mes = h.slice(0, 8) + '01'
     const f = deTexto(h); const finMes = aTexto(new Date(f.getFullYear(), f.getMonth() + 1, 0))
-    Promise.all([api.citas(h, sumarDias(h, 1)), api.listaCompras(), api.clientas(), api.resumen(mes, finMes),
+    const esMary = usuario?.rol === 'PROPIETARIA'
+    Promise.all([api.citas(h, sumarDias(h, 1)), api.listaCompras(),
+      esMary ? api.clientas() : Promise.resolve([]),
+      esMary ? api.resumen(mes, finMes) : Promise.resolve(null),
       api.porRenovar(), api.maletin(sumarDias(h, 1))])
       .then(([citas, faltantes, clientas, resumen, porRenovar, maletin]) => setDatos({ citas, faltantes, clientas, resumen, porRenovar, maletin }))
       .catch((e) => setError(e.message))
-  }, [])
+  }, [usuario?.rol])
 
   async function renovar(id) {
     try {
@@ -49,8 +52,17 @@ export default function Inicio({ ir, usuario }) {
       <div className="kpis">
         <button className="kpi" onClick={() => ir('agenda')}><CalendarCheck size={20} /><strong>{deHoy.length}</strong><span>citas hoy</span></button>
         <button className="kpi" onClick={() => ir('compras')}><ShoppingBag size={20} /><strong>{datos.faltantes.length}</strong><span>por comprar</span></button>
-        <button className="kpi" onClick={() => ir('clientas')}><UserRound size={20} /><strong>{recontactar.length}</strong><span>por recontactar</span></button>
-        <button className="kpi" onClick={() => ir('finanzas')}><Wallet size={20} /><strong>{pesos(datos.resumen.ingresos)}</strong><span>ingresos de {mesActual}</span></button>
+        {datos.resumen ? (
+          <>
+            <button className="kpi" onClick={() => ir('clientas')}><UserRound size={20} /><strong>{recontactar.length}</strong><span>por recontactar</span></button>
+            <button className="kpi" onClick={() => ir('finanzas')}><Wallet size={20} /><strong>{pesos(datos.resumen.ingresos)}</strong><span>ingresos de {mesActual}</span></button>
+          </>
+        ) : (
+          <>
+            <button className="kpi" onClick={() => ir('catalogo')}><RefreshCw size={20} /><strong>{datos.porRenovar.length}</strong><span>por renovar</span></button>
+            <button className="kpi" onClick={() => ir('agenda')}><Briefcase size={20} /><strong>{datos.maletin.filter((i) => i.falta).length}</strong><span>faltan para mañana</span></button>
+          </>
+        )}
       </div>
 
       <div className="dos-columnas">
