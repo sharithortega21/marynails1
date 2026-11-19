@@ -63,7 +63,8 @@ public class AgendaController {
     // ---------- clientas ----------
 
     public record ClienteIn(String nombre, String telefono, String direccion, Long sectorId,
-                            Integer frecuenciaDias, String observaciones) {}
+                            Integer frecuenciaDias, String observaciones, String salud, Boolean autorizaSalud,
+                            LocalDate recordatorioFecha, String recordatorioTexto, Boolean quitarRecordatorio) {}
 
     @GetMapping("/clientas")
     public List<ClienteDto> clientas() {
@@ -100,6 +101,26 @@ public class AgendaController {
         if (in.telefono() != null) c.setTelefono(limpio(in.telefono()));
         if (in.direccion() != null) c.setDireccion(limpio(in.direccion()));
         if (in.observaciones() != null) c.setObservaciones(limpio(in.observaciones()));
+        if (in.autorizaSalud() != null) c.setAutorizaSalud(in.autorizaSalud());
+        if (in.salud() != null) {
+            String salud = limpio(in.salud());
+            if (salud != null && salud.length() > 300) throw malo("Los datos de salud son muy largos (máximo 300 letras)");
+            if (salud != null && !c.isAutorizaSalud()) {
+                throw malo("Para guardar datos de salud la clienta debe autorizarlo (Ley 1581 de 2012)");
+            }
+            c.setSalud(salud);
+        }
+        if (!c.isAutorizaSalud()) c.setSalud(null); // si retira la autorizacion, se borran
+        if (Boolean.TRUE.equals(in.quitarRecordatorio())) {
+            c.setRecordatorioFecha(null);
+            c.setRecordatorioTexto(null);
+        } else if (in.recordatorioFecha() != null || in.recordatorioTexto() != null) {
+            String texto = in.recordatorioTexto() == null ? null : limpio(in.recordatorioTexto());
+            if (texto != null && texto.length() > 200) throw malo("El recordatorio es muy largo (máximo 200 letras)");
+            if (in.recordatorioFecha() == null || texto == null) throw malo("El recordatorio necesita fecha y texto");
+            c.setRecordatorioFecha(in.recordatorioFecha());
+            c.setRecordatorioTexto(texto);
+        }
         if (in.sectorId() != null) {
             if (!sectores.existsById(in.sectorId())) throw malo("Ese sector no existe");
             c.setSectorId(in.sectorId());

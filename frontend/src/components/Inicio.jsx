@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, Briefcase, CalendarCheck, MessageCircle, RefreshCw, ShoppingBag, UserRound, Wallet } from 'lucide-react'
+import { AlertTriangle, Bell, Briefcase, CalendarCheck, MessageCircle, RefreshCw, ShoppingBag, UserRound, Wallet } from 'lucide-react'
 import { api } from '../api.js'
 import { aTexto, deTexto, hoy, hora12, pesos, sumarDias, nombreDia, diaMes } from '../fechas.js'
 
@@ -23,6 +23,13 @@ export default function Inicio({ ir, usuario }) {
       .catch((e) => setError(e.message))
   }, [usuario?.rol])
 
+  async function recordatorioHecho(id) {
+    try {
+      await api.editarClienta(id, { quitarRecordatorio: true })
+      setDatos((d) => ({ ...d, clientas: d.clientas.map((c) => (c.id === id ? { ...c, recordatorioFecha: null } : c)) }))
+    } catch (e) { setError(e.message) }
+  }
+
   async function renovar(id) {
     try {
       await api.renovar(id)
@@ -38,6 +45,7 @@ export default function Inicio({ ir, usuario }) {
   const deHoy = activas.filter((c) => c.fecha === h)
   const deManana = activas.filter((c) => c.fecha === sumarDias(h, 1))
   const recontactar = datos.clientas.filter((c) => c.frecuenciaDias && c.ultimaCita && !c.proximaCita && diasEntre(c.ultimaCita, h) >= c.frecuenciaDias)
+  const recordatorios = datos.clientas.filter((c) => c.recordatorioFecha && c.recordatorioFecha <= h)
   const mesActual = new Date().toLocaleDateString('es-CO', { month: 'long' })
 
   const texto = 'Lista de compras Mary Nails:\n' + datos.faltantes.map((p) => `- ${p.linea ? `${p.linea} ${p.codigo}` : p.nombre}`).join('\n')
@@ -86,7 +94,7 @@ export default function Inicio({ ir, usuario }) {
 
         <div className="panel">
           <h3><AlertTriangle size={16} /> Alertas</h3>
-          {datos.faltantes.length === 0 && recontactar.length === 0 && datos.porRenovar.length === 0 && <p className="vacio">Todo en orden.</p>}
+          {datos.faltantes.length === 0 && recontactar.length === 0 && datos.porRenovar.length === 0 && recordatorios.length === 0 && <p className="vacio">Todo en orden.</p>}
           <ul className="mini">
             {datos.faltantes.slice(0, 6).map((p) => (
               <li key={p.id}>
@@ -95,6 +103,12 @@ export default function Inicio({ ir, usuario }) {
               </li>
             ))}
             {datos.faltantes.length > 6 && <li className="suave">y {datos.faltantes.length - 6} más en la lista…</li>}
+            {recordatorios.map((c) => (
+              <li key={'n' + c.id}>
+                <span><Bell size={13} /> {c.nombre.split(' ')[0]}: {c.recordatorioTexto}</span>
+                <button className="enlace-boton renovar-hoy" onClick={() => recordatorioHecho(c.id)}>Hecho</button>
+              </li>
+            ))}
             {datos.porRenovar.map((r) => (
               <li key={'r' + r.producto.id}>
                 <span><RefreshCw size={13} /> Renovar {r.producto.nombre}</span>

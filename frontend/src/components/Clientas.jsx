@@ -28,6 +28,8 @@ function Formulario({ clienta, onCerrar, onGuardada }) {
     nombre: clienta?.nombre || '', telefono: clienta?.telefono || '', direccion: clienta?.direccion || '',
     sectorId: clienta?.sectorId ? String(clienta.sectorId) : '', frecuenciaDias: clienta?.frecuenciaDias ? String(clienta.frecuenciaDias) : '',
     observaciones: clienta?.observaciones || '', barrio: '', municipio: 'Cúcuta',
+    autorizaSalud: clienta?.autorizaSalud || false, salud: clienta?.salud || '',
+    recordatorioFecha: clienta?.recordatorioFecha || '', recordatorioTexto: clienta?.recordatorioTexto || '',
   })
   const [error, setError] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -46,6 +48,10 @@ function Formulario({ clienta, onCerrar, onGuardada }) {
         nombre: f.nombre, telefono: f.telefono, direccion: f.direccion, observaciones: f.observaciones,
         sectorId: sectorId ? Number(sectorId) : null,
         frecuenciaDias: f.frecuenciaDias ? Number(f.frecuenciaDias) : (clienta?.frecuenciaDias ? 0 : null),
+        autorizaSalud: f.autorizaSalud, salud: f.autorizaSalud ? f.salud : '',
+        ...(f.recordatorioFecha || f.recordatorioTexto
+          ? { recordatorioFecha: f.recordatorioFecha || null, recordatorioTexto: f.recordatorioTexto }
+          : { quitarRecordatorio: Boolean(clienta?.recordatorioFecha) }),
       }
       onGuardada(clienta ? await api.editarClienta(clienta.id, cuerpo) : await api.crearClienta(cuerpo))
     } catch (err) {
@@ -85,8 +91,32 @@ function Formulario({ clienta, onCerrar, onGuardada }) {
             {FRECUENCIAS.map(([v, t]) => <option key={v} value={v}>{t}</option>)}
           </select>
           <small className="suave">Es una referencia: cuando pase ese tiempo desde su última cita, te avisamos para que le escribas.</small></label>
-        <label className="campo"><span className="etiqueta-campo">Notas</span>
+        <label className="campo"><span className="etiqueta-campo">Notas (opcional)</span>
           <input value={f.observaciones} onChange={poner('observaciones')} placeholder="Prefiere las tardes, le gustan los diseños…" /></label>
+
+        <fieldset className="grupo-campos">
+          <legend>Salud o alergias (opcional)</legend>
+          <label className="interruptor">
+            <input id="cl-autoriza" type="checkbox" checked={f.autorizaSalud} onChange={(e) => setF({ ...f, autorizaSalud: e.target.checked })} />
+            La clienta autoriza guardar sus datos de salud (Ley 1581 de 2012)
+          </label>
+          {f.autorizaSalud && (
+            <textarea id="cl-salud" rows="2" maxLength="300" value={f.salud} onChange={poner('salud')}
+                      placeholder="Ej.: alérgica al acrílico, diabetes (cuidado con cortes en los pies)" />
+          )}
+          {!f.autorizaSalud && clienta?.salud && <small className="aviso">Al guardar sin autorización se borran los datos de salud.</small>}
+        </fieldset>
+
+        <fieldset className="grupo-campos">
+          <legend>Recordatorio (opcional)</legend>
+          <div className="dos">
+            <input id="cl-rec-fecha" type="date" value={f.recordatorioFecha} onChange={poner('recordatorioFecha')} aria-label="Fecha del recordatorio" />
+            <input id="cl-rec-texto" maxLength="200" value={f.recordatorioTexto} onChange={poner('recordatorioTexto')} placeholder="Ej.: llevarle el esmalte rojo" aria-label="Texto del recordatorio" />
+          </div>
+          {(f.recordatorioFecha || f.recordatorioTexto) && (
+            <button type="button" className="enlace-boton" onClick={() => setF({ ...f, recordatorioFecha: '', recordatorioTexto: '' })}>Quitar recordatorio</button>
+          )}
+        </fieldset>
         {error && <p className="error" role="alert">{error}</p>}
         <div className="acciones">
           <button type="submit" className="primario" disabled={enviando}>{enviando ? 'Guardando…' : 'Guardar'}</button>
@@ -213,6 +243,8 @@ export default function Clientas() {
                   {c.proximaCita && ` · próxima: ${diaMes(c.proximaCita)}`}
                 </span>
                 {c.observaciones && <span className="suave nota">“{c.observaciones}”</span>}
+                {c.salud && <span className="salud">Salud: {c.salud}</span>}
+                {c.recordatorioFecha && <span className="suave nota">Recordatorio {diaMes(c.recordatorioFecha)}: {c.recordatorioTexto}</span>}
               </div>
               <div className="etiquetas">
                 {toca && <span className="etiqueta critico">Escríbele · pasaron {dias} días</span>}

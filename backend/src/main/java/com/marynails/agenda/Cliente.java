@@ -1,6 +1,7 @@
 package com.marynails.agenda;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "cliente")
@@ -14,6 +15,10 @@ public class Cliente {
     private Long sectorId;
     private Short frecuenciaDias;
     private String observaciones;
+    private String salud;
+    private boolean autorizaSalud;
+    private LocalDate recordatorioFecha;
+    private String recordatorioTexto;
 
     protected Cliente() {}
 
@@ -32,4 +37,10 @@ public class Cliente {
     public void setFrecuenciaDias(Short v) { this.frecuenciaDias = v; }
     public String getObservaciones() { return observaciones; }
     public void setObservaciones(String v) { this.observaciones = v; }
+    public String getSalud() { return salud; }
+    public void setSalud(String v) { this.salud = v; }
+    public boolean isAutorizaSalud() { return autorizaSalud; }
+    public void setAutorizaSalud(boolean v) { this.autorizaSalud = v; }
+    public void setRecordatorioFecha(LocalDate v) { this.recordatorioFecha = v; }
+    public void setRecordatorioTexto(String v) { this.recordatorioTexto = v; }
 }
