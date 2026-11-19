@@ -34,6 +34,11 @@ public class ProductoController {
     }
 
     /** Compra de respaldo: productos estándar que toca reponer cada mes y medio. */
+    @GetMapping("/prediccion")
+    public List<InventarioService.Prediccion> prediccion() {
+        return inventario.prediccion();
+    }
+
     @GetMapping("/compra-respaldo")
     public List<InventarioService.Respaldo> compraRespaldo() {
         return inventario.compraRespaldo();

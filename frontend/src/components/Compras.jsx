@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { api } from '../api.js'
 import CompraRespaldo from './CompraRespaldo.jsx'
+import Consumo from './Consumo.jsx'
 import { hoy, diaMes, pesos } from '../fechas.js'
 import ListaCompras from './ListaCompras.jsx'
 
@@ -101,10 +102,11 @@ export default function Compras() {
       <div className="encabezado"><h2>Compras</h2></div>
       <div className="subtabs">
         <button className={sub === 'lista' ? 'chip activo' : 'chip'} onClick={() => setSub('lista')}>Por comprar</button>
+        <button className={sub === 'consumo' ? 'chip activo' : 'chip'} onClick={() => setSub('consumo')}>¿Cuándo se acaba?</button>
         <button className={sub === 'respaldo' ? 'chip activo' : 'chip'} onClick={() => setSub('respaldo')}>Respaldo (mes y medio)</button>
         <button className={sub === 'entrada' ? 'chip activo' : 'chip'} onClick={() => setSub('entrada')}>Registrar compra</button>
       </div>
-      {sub === 'lista' ? <ListaCompras /> : sub === 'respaldo' ? <CompraRespaldo /> : <Entrada />}
+      {sub === 'lista' ? <ListaCompras /> : sub === 'consumo' ? <Consumo /> : sub === 'respaldo' ? <CompraRespaldo /> : <Entrada />}
     </section>
   )
 }

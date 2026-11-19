@@ -92,7 +92,7 @@ public class ProductoService {
         String modo = vacio(d.modoControl()) ? "MANUAL" : d.modoControl().trim().toUpperCase();
         if (!MODOS.contains(modo)) throw malo("El modo de control debe ser manual, por arreglos o por tiempo");
         if (!"MANUAL".equals(modo) && (d.rendimiento() == null || d.rendimiento().signum() <= 0)) {
-            throw malo("CONSUMO".equals(modo) ? "Escribe cuántos arreglos rinde" : "Escribe cada cuántos días se renueva");
+            throw malo("CONSUMO".equals(modo) ? "Escribe para cuántas clientas le dura" : "Escribe cada cuántos días lo compras o lo cambias");
         }
         if (d.presentacion() != null) validarNoNegativo(d.presentacion());
         if (d.stockMinimo() != null) validarNoNegativo(d.stockMinimo());

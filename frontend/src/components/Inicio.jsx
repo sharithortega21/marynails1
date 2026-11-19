@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, Bell, Briefcase, CalendarCheck, MessageCircle, RefreshCw, ShoppingBag, UserRound, Wallet } from 'lucide-react'
+import { AlertTriangle, Bell, Briefcase, CalendarCheck, MessageCircle, RefreshCw, ShoppingBag, TrendingDown, UserRound, Wallet } from 'lucide-react'
 import { api } from '../api.js'
 import { aTexto, deTexto, hoy, hora12, pesos, sumarDias, nombreDia, diaMes } from '../fechas.js'
 
@@ -18,8 +18,8 @@ export default function Inicio({ ir, usuario }) {
     Promise.all([api.citas(h, sumarDias(h, 1)), api.listaCompras(),
       esMary ? api.clientas() : Promise.resolve([]),
       esMary ? api.resumen(mes, finMes) : Promise.resolve(null),
-      api.porRenovar(), api.maletin(sumarDias(h, 1))])
-      .then(([citas, faltantes, clientas, resumen, porRenovar, maletin]) => setDatos({ citas, faltantes, clientas, resumen, porRenovar, maletin }))
+      api.porRenovar(), api.maletin(sumarDias(h, 1)), api.prediccion()])
+      .then(([citas, faltantes, clientas, resumen, porRenovar, maletin, prediccion]) => setDatos({ citas, faltantes, clientas, resumen, porRenovar, maletin, prediccion }))
       .catch((e) => setError(e.message))
   }, [usuario?.rol])
 
@@ -37,6 +37,13 @@ export default function Inicio({ ir, usuario }) {
     } catch (e) { setError(e.message) }
   }
 
+  async function aLista(id) {
+    try {
+      await api.actualizar(id, { porComprar: 1 })
+      setDatos((d) => ({ ...d, prediccion: d.prediccion.map((x) => (x.productoId === id ? { ...x, enLista: true } : x)) }))
+    } catch (e) { setError(e.message) }
+  }
+
   if (error) return <p className="error" role="alert">{error}</p>
   if (!datos) return <p className="vacio">Cargando…</p>
 
@@ -46,6 +53,8 @@ export default function Inicio({ ir, usuario }) {
   const deManana = activas.filter((c) => c.fecha === sumarDias(h, 1))
   const recontactar = datos.clientas.filter((c) => c.frecuenciaDias && c.ultimaCita && !c.proximaCita && diasEntre(c.ultimaCita, h) >= c.frecuenciaDias)
   const recordatorios = datos.clientas.filter((c) => c.recordatorioFecha && c.recordatorioFecha <= h)
+  // Por clientas: lo que se acaba en una semana (o que ya no alcanza para lo agendado) y aún no está en la lista
+  const seAcaban = datos.prediccion.filter((p) => p.modoControl === 'CONSUMO' && (p.estado === 'AGOTADO' || p.estado === 'PRONTO') && !p.enLista && !datos.faltantes.some((f) => f.id === p.productoId))
   const mesActual = new Date().toLocaleDateString('es-CO', { month: 'long' })
 
   const texto = 'Lista de compras Mary Nails:\n' + datos.faltantes.map((p) => `- ${p.linea ? `${p.linea} ${p.codigo}` : p.nombre}`).join('\n')
@@ -94,7 +103,7 @@ export default function Inicio({ ir, usuario }) {
 
         <div className="panel">
           <h3><AlertTriangle size={16} /> Alertas</h3>
-          {datos.faltantes.length === 0 && recontactar.length === 0 && datos.porRenovar.length === 0 && recordatorios.length === 0 && <p className="vacio">Todo en orden.</p>}
+          {datos.faltantes.length === 0 && recontactar.length === 0 && datos.porRenovar.length === 0 && recordatorios.length === 0 && seAcaban.length === 0 && <p className="vacio">Todo en orden.</p>}
           <ul className="mini">
             {datos.faltantes.slice(0, 6).map((p) => (
               <li key={p.id}>
@@ -103,6 +112,13 @@ export default function Inicio({ ir, usuario }) {
               </li>
             ))}
             {datos.faltantes.length > 6 && <li className="suave">y {datos.faltantes.length - 6} más en la lista…</li>}
+            {seAcaban.map((p) => (
+              <li key={'p' + p.productoId}>
+                <span><TrendingDown size={13} /> {p.nombre}</span>
+                <em className="aviso">{p.clientasRestantes <= 0 ? 'se acabó' : `quedan para ${p.clientasRestantes} ${p.clientasRestantes === 1 ? 'clienta' : 'clientas'}`}</em>
+                <button className="enlace-boton renovar-hoy" onClick={() => aLista(p.productoId)}>A la lista</button>
+              </li>
+            ))}
             {recordatorios.map((c) => (
               <li key={'n' + c.id}>
                 <span><Bell size={13} /> {c.nombre.split(' ')[0]}: {c.recordatorioTexto}</span>
@@ -139,7 +155,7 @@ export default function Inicio({ ir, usuario }) {
                   <span>{i.nombre}</span>
                 </label>
                 <span className="maletin-meta">
-                  <span className="suave">{i.arreglos > 0 ? `${i.arreglos} ${i.arreglos === 1 ? 'arreglo' : 'arreglos'}` : 'no puede faltar'}</span>
+                  <span className="suave">{i.arreglos > 0 ? `${i.arreglos} ${i.arreglos === 1 ? 'turno' : 'turnos'}` : 'no puede faltar'}</span>
                   {i.falta && <em className="aviso">no hay</em>}
                 </span>
               </li>
