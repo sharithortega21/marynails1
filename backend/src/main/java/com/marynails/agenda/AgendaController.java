@@ -1,5 +1,6 @@
 package com.marynails.agenda;
 
+import com.marynails.catalogo.InventarioService;
 import com.marynails.model.Servicio;
 import com.marynails.repository.ServicioRepository;
 import java.math.BigDecimal;
@@ -26,13 +27,15 @@ public class AgendaController {
     private final ServicioRepository servicios;
     private final ClienteRepository clientes;
     private final CitaRepository citas;
+    private final InventarioService inventario;
 
     public AgendaController(SectorRepository sectores, ServicioRepository servicios,
-                            ClienteRepository clientes, CitaRepository citas) {
+                            ClienteRepository clientes, CitaRepository citas, InventarioService inventario) {
         this.sectores = sectores;
         this.servicios = servicios;
         this.clientes = clientes;
         this.citas = citas;
+        this.inventario = inventario;
     }
 
     // ---------- sectores (los servicios tienen su propio controller) ----------
@@ -174,6 +177,8 @@ public class AgendaController {
             validarCruce(id, c.getFecha(), c.getHora(), duracion(s, c.getTurnos()));
         }
         citas.flush();
+        // Gasto por arreglos: si quedo atendida descuenta la receta; si no, devuelve lo descontado
+        inventario.sincronizarCita(id, c.getServicioId(), c.getTurnos(), "ATENDIDA".equals(c.getEstado()));
         return citas.detalle(id);
     }
 
@@ -181,6 +186,7 @@ public class AgendaController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void borrarCita(@PathVariable Long id) {
         if (!citas.existsById(id)) throw noExiste("Cita");
+        inventario.devolver(id);
         citas.deleteById(id);
     }
 

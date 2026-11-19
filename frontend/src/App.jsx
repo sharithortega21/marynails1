@@ -80,7 +80,7 @@ export default function App() {
         </div>
       </header>
       <main className="contenido">
-        {vista === 'inicio' ? <Inicio ir={setVista} /> : vista === 'acerca' ? <AcercaDe /> : vista === 'servicios' ? <Servicios /> : vista === 'catalogo' ? <Catalogo /> : vista === 'compras' ? <Compras /> : vista === 'clientas' ? <Clientas /> : vista === 'finanzas' ? <Finanzas /> : <Agenda />}
+        {vista === 'inicio' ? <Inicio ir={setVista} usuario={usuario} /> : vista === 'acerca' ? <AcercaDe /> : vista === 'servicios' ? <Servicios /> : vista === 'catalogo' ? <Catalogo /> : vista === 'compras' ? <Compras /> : vista === 'clientas' ? <Clientas /> : vista === 'finanzas' ? <Finanzas /> : <Agenda />}
       </main>
     </div>
   )

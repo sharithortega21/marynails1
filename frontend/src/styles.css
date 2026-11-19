@@ -241,3 +241,16 @@ input, select { padding: 8px 10px; border: 1px solid var(--borde); border-radius
 .historial { list-style: none; display: grid; gap: 8px; margin: 0; padding: 0; }
 .historial li { border: 1px solid var(--borde); border-radius: 10px; padding: 8px 10px; font-size: .9rem; display: grid; gap: 2px; }
 .historial li.suave { opacity: .75; }
+
+/* Gasto por promedio y maletín */
+.rinde { font-size: .82rem; color: var(--suave); margin: 0; }
+.rinde.poco { color: var(--rosa-fuerte); font-weight: 700; }
+.renovar { display: grid; gap: 6px; justify-items: start; }
+.maletin { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.maletin li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; font-size: .9rem; }
+.maletin li label { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.maletin-meta { display: flex; align-items: center; gap: 6px; justify-content: flex-end; white-space: nowrap; }
+.maletin li input { accent-color: var(--rosa); width: 17px; height: 17px; flex: none; }
+.maletin li.listo span:not(.suave) { text-decoration: line-through; color: var(--suave); }
+
+.renovar-hoy { font-size: .82rem; white-space: nowrap; }

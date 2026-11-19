@@ -13,10 +13,30 @@ public class ProductoController {
 
     private final ProductoRepository repo;
     private final ProductoService servicio;
+    private final InventarioService inventario;
 
-    public ProductoController(ProductoRepository repo, ProductoService servicio) {
+    public ProductoController(ProductoRepository repo, ProductoService servicio, InventarioService inventario) {
         this.repo = repo;
         this.servicio = servicio;
+        this.inventario = inventario;
+    }
+
+    /** "La renové hoy" para productos que se gastan por tiempo (limas, alcohol, algodón...). */
+    @PostMapping("/productos/{id}/renovar")
+    public ProductoDto renovar(@PathVariable Long id) {
+        return inventario.renovar(id);
+    }
+
+    /** Productos por tiempo que ya toca renovar (o les faltan 3 días o menos). */
+    @GetMapping("/por-renovar")
+    public List<InventarioService.PorRenovar> porRenovar() {
+        return inventario.porRenovar();
+    }
+
+    /** Lista del maletín para un día (por defecto mañana). */
+    @GetMapping("/maletin")
+    public List<InventarioService.ItemMaletin> maletin(@RequestParam(required = false) java.time.LocalDate fecha) {
+        return inventario.maletin(fecha != null ? fecha : java.time.LocalDate.now().plusDays(1));
     }
 
     /** Catalogo con filtros: categoria, linea de color, solo habituales, solo los que tengo, busqueda por nombre. */

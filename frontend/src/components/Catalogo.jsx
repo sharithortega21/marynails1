@@ -69,6 +69,13 @@ export default function Catalogo() {
     }
   }
 
+  async function renovar(id) {
+    try {
+      const nuevo = await api.renovar(id)
+      setItems((prev) => prev.map((p) => (p.id === id ? nuevo : p)))
+    } catch (e) { setError(e.message) }
+  }
+
   function guardado(p, editado) {
     setFormulario(null)
     if (editado) setItems((prev) => prev.map((x) => (x.id === p.id ? p : x)).filter((x) => ocultos || x.activo))
@@ -128,7 +135,7 @@ export default function Catalogo() {
       {error && <p className="error" role="alert">{error}</p>}
 
       <div className="rejilla">
-        {items.map((p) => <ProductoCard key={p.id} p={p} onCambiar={cambiar} onEditar={() => setFormulario({ producto: p })} />)}
+        {items.map((p) => <ProductoCard key={p.id} p={p} onCambiar={cambiar} onEditar={() => setFormulario({ producto: p })} onRenovar={renovar} />)}
       </div>
 
       {!cargando && items.length === 0 && !error && <p className="vacio">No hay productos con esos filtros.</p>}

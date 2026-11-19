@@ -1,4 +1,5 @@
-import { Star, Plus, Minus, Check, ShoppingCart, X, Pencil } from 'lucide-react'
+import { deTexto, hoy } from '../fechas.js'
+import { Star, Plus, Minus, Check, ShoppingCart, X, Pencil, RefreshCw } from 'lucide-react'
 
 const ACABADOS = {
   CREMOSO: 'Cremoso', PERLADO: 'Perlado', TRASLUCIDO: 'Traslúcido', METALIZADO: 'Metalizado',
@@ -6,11 +7,18 @@ const ACABADOS = {
   'TRASLUCIDO/PERLADO': 'Traslúcido/perlado', 'PERLADO/METALIZADO': 'Perlado/metalizado',
 }
 
-export default function ProductoCard({ p, onCambiar, onEditar }) {
+export default function ProductoCard({ p, onCambiar, onEditar, onRenovar }) {
   const esColor = Boolean(p.linea)
   const stock = Number(p.stockActual)
   const tengo = stock > 0
   const titulo = esColor ? p.codigo : p.nombre
+  const alcanza = p.modoControl === 'CONSUMO' && p.rendimiento ? Math.floor(stock * Number(p.rendimiento) + 0.0001) : null
+  let renovacion = null
+  if (p.modoControl === 'TIEMPO' && p.rendimiento && p.enUsoDesde) {
+    const uso = Math.round((deTexto(hoy()) - deTexto(p.enUsoDesde)) / 86400000)
+    const faltan = Number(p.rendimiento) - uso
+    renovacion = faltan <= 0 ? `Toca renovarla (lleva ${uso} días)` : `Renovar en ${faltan} ${faltan === 1 ? 'día' : 'días'}`
+  }
 
   return (
     <article className={(tengo ? 'tarjeta tengo' : 'tarjeta') + (p.activo === false ? ' oculto' : '')}>
@@ -44,6 +52,15 @@ export default function ProductoCard({ p, onCambiar, onEditar }) {
         {p.modoControl === 'TIEMPO' && p.rendimiento && <span className="etiqueta suave">Se renueva cada {Number(p.rendimiento)} días</span>}
         {p.activo === false && <span className="etiqueta">Oculto</span>}
       </div>
+      {alcanza !== null && <p className={alcanza <= 5 ? 'rinde poco' : 'rinde'}>Alcanza para unos {alcanza} arreglos</p>}
+      {p.modoControl === 'TIEMPO' && p.rendimiento && (
+        <div className="renovar">
+          {renovacion && <span className={renovacion.startsWith('Toca') ? 'rinde poco' : 'rinde'}>{renovacion}</span>}
+          <button className="secundario pequeno" onClick={() => onRenovar(p.id)}>
+            <RefreshCw size={13} /> {p.enUsoDesde ? 'La renové hoy' : 'Empecé a usarla hoy'}
+          </button>
+        </div>
+      )}
 
       {esColor ? (
         <button

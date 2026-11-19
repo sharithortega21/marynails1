@@ -2,6 +2,7 @@ package com.marynails.catalogo;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "producto")
@@ -23,6 +24,7 @@ public class Producto {
     private boolean esCritico;
     private String imagenUrl;
     private boolean activo = true;
+    private LocalDate enUsoDesde;
 
     protected Producto() {}
 
@@ -61,4 +63,6 @@ public class Producto {
     public void setImagenUrl(String v) { this.imagenUrl = v; }
     public boolean isActivo() { return activo; }
     public void setActivo(boolean v) { this.activo = v; }
+    public LocalDate getEnUsoDesde() { return enUsoDesde; }
+    public void setEnUsoDesde(LocalDate v) { this.enUsoDesde = v; }
 }

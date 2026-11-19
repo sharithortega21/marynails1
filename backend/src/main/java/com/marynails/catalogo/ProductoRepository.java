@@ -19,7 +19,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             select new com.marynails.catalogo.ProductoDto(
                 p.id, p.nombre, p.categoria, p.modoControl, p.presentacion, p.unidad, p.rendimiento,
                 p.stockActual, p.stockMinimo, p.cantidadHabitual, p.porComprar, p.esHabitual, p.esCritico, p.imagenUrl,
-                c.linea, c.codigo, c.acabado, c.familiaColor, c.hex, p.activo)
+                c.linea, c.codigo, c.acabado, c.familiaColor, c.hex, p.activo, p.enUsoDesde)
             from Producto p left join Color c on c.productoId = p.id
             """;
 
@@ -57,6 +57,13 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             order by p.esCritico desc, p.categoria, p.nombre
             """)
     List<ProductoDto> faltantes();
+
+    /** Productos por tiempo que ya cumplieron sus dias de uso (o estan a 3 dias de cumplirlos). */
+    @Query(CAMPOS + """
+            where p.activo = true and p.modoControl = 'TIEMPO' and p.enUsoDesde is not null and p.rendimiento is not null
+            order by p.enUsoDesde
+            """)
+    List<ProductoDto> enUsoPorTiempo();
 
     interface Conteo {
         String getNombre();
