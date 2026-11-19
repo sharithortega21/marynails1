@@ -76,6 +76,13 @@ public class AgendaController {
         return clientes.detalle(c.getId(), LocalDate.now());
     }
 
+    /** Historial de servicios de una clienta. */
+    @GetMapping("/clientas/{id}/citas")
+    public List<CitaDto> historial(@PathVariable Long id) {
+        if (!clientes.existsById(id)) throw noExiste("Clienta");
+        return citas.deClienta(id);
+    }
+
     @PatchMapping("/clientas/{id}")
     @Transactional
     public ClienteDto editarClienta(@PathVariable Long id, @RequestBody ClienteIn in) {

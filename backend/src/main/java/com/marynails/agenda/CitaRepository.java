@@ -23,6 +23,10 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     @Query(CAMPOS + " where c.fecha between :desde and :hasta order by c.fecha, c.hora, c.id")
     List<CitaDto> entre(@Param("desde") LocalDate desde, @Param("hasta") LocalDate hasta);
 
+    /** Historial de una clienta: todas sus citas, de la mas reciente a la mas antigua. */
+    @Query(CAMPOS + " where c.clienteId = :clienteId order by c.fecha desc, c.hora desc")
+    List<CitaDto> deClienta(@Param("clienteId") Long clienteId);
+
     @Query(CAMPOS + " where c.id = :id")
     CitaDto detalle(@Param("id") Long id);
 }

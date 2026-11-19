@@ -55,6 +55,7 @@ export const api = {
   crearSector: (s) => pedir('/api/sectores', { method: 'POST', body: JSON.stringify(s) }),
   clientas: () => pedir('/api/clientas'),
   crearClienta: (c) => pedir('/api/clientas', { method: 'POST', body: JSON.stringify(c) }),
+  historialClienta: (id) => pedir(`/api/clientas/${id}/citas`),
   editarClienta: (id, c) => pedir(`/api/clientas/${id}`, { method: 'PATCH', body: JSON.stringify(c) }),
   citas: (desde, hasta) => pedir('/api/citas?' + new URLSearchParams({ desde, hasta })),
   crearCita: (c) => pedir('/api/citas', { method: 'POST', body: JSON.stringify(c) }),
