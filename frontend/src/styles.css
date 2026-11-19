@@ -230,3 +230,7 @@ input, select { padding: 8px 10px; border: 1px solid var(--borde); border-radius
 .tarjeta.oculto { opacity: .6; }
 .ventana .chips { margin: 0; }
 .tarjeta-cab > div { flex: 1; min-width: 0; }
+
+/* Extra por diseño: botones rápidos y barra deslizante */
+.extra-diseno { display: grid; gap: 6px; grid-column: 1 / -1; font-size: .88rem; }
+.extra-diseno input[type=range] { width: 100%; accent-color: var(--rosa); }

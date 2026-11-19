@@ -135,6 +135,7 @@ public class AgendaController {
         c.setTurnos((short) turnos);
         if (in.lugar() != null) c.setLugar(valido(in.lugar(), LUGARES, "El lugar no es válido"));
         if (in.observaciones() != null) c.setObservaciones(limpio(in.observaciones()));
+        validarCruce(null, c.getFecha(), c.getHora(), duracion(s, turnos));
         citas.saveAndFlush(c);
         return citas.detalle(c.getId());
     }
@@ -159,6 +160,12 @@ public class AgendaController {
         if (in.valorPagado() != null) c.setValorPagado(noNegativo(in.valorPagado()));
         if (in.medioPago() != null) c.setMedioPago(in.medioPago().isBlank() ? null : valido(in.medioPago(), MEDIOS, "El medio de pago no es válido"));
         if (in.observaciones() != null) c.setObservaciones(limpio(in.observaciones()));
+        boolean mueveHorario = in.fecha() != null || in.hora() != null || in.turnos() != null || in.servicioId() != null
+                || "PROGRAMADA".equals(in.estado());
+        if (mueveHorario && !"CANCELADA".equals(c.getEstado()) && !"NO_ASISTIO".equals(c.getEstado())) {
+            Servicio s = servicios.findById(c.getServicioId()).orElseThrow(() -> malo("Ese servicio no existe"));
+            validarCruce(id, c.getFecha(), c.getHora(), duracion(s, c.getTurnos()));
+        }
         citas.flush();
         return citas.detalle(id);
     }
@@ -171,6 +178,39 @@ public class AgendaController {
     }
 
     // ---------- ayudas ----------
+
+    private static int duracion(Servicio s, int turnos) {
+        int min = s.getDuracionMin() == null ? 60 : s.getDuracionMin();
+        return min * Math.max(1, turnos);
+    }
+
+    /**
+     * Regla: dos citas activas (programadas o atendidas) no pueden cruzarse en el mismo dia.
+     * Una cita ocupa desde su hora hasta su hora + duracion del servicio x turnos.
+     */
+    private void validarCruce(Long idPropio, LocalDate fecha, LocalTime hora, int minutos) {
+        int inicio = hora.toSecondOfDay() / 60;
+        int fin = inicio + minutos;
+        for (CitaDto otra : citas.entre(fecha, fecha)) {
+            if (otra.id().equals(idPropio)) continue;
+            if (!"PROGRAMADA".equals(otra.estado()) && !"ATENDIDA".equals(otra.estado())) continue;
+            int oi = otra.hora().toSecondOfDay() / 60;
+            int dur = (otra.duracionMin() == null ? 60 : otra.duracionMin()) * Math.max(1, otra.turnos());
+            int of = oi + dur;
+            if (inicio < of && oi < fin) {
+                throw malo("Se cruza con la cita de " + otra.cliente() + " (" + reloj(oi) + " a " + reloj(of)
+                        + "). Elige otra hora.");
+            }
+        }
+    }
+
+    private static String reloj(int minutos) {
+        int h = (minutos / 60) % 24;
+        int m = minutos % 60;
+        String sufijo = h < 12 ? "a. m." : "p. m.";
+        int h12 = h % 12 == 0 ? 12 : h % 12;
+        return h12 + ":" + (m < 10 ? "0" : "") + m + " " + sufijo;
+    }
 
     private static String texto(String v, String mensaje) {
         if (v == null || v.isBlank()) throw malo(mensaje);
