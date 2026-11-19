@@ -22,8 +22,15 @@ public class Producto {
     private boolean esHabitual;
     private boolean esCritico;
     private String imagenUrl;
+    private boolean activo = true;
 
     protected Producto() {}
+
+    public Producto(String nombre, String categoria) {
+        this.nombre = nombre;
+        this.categoria = categoria;
+        this.modoControl = "MANUAL";
+    }
 
     public Long getId() { return id; }
     public String getNombre() { return nombre; }
@@ -39,4 +46,19 @@ public class Producto {
     public void setEsHabitual(boolean v) { this.esHabitual = v; }
     public boolean isEsCritico() { return esCritico; }
     public void setEsCritico(boolean v) { this.esCritico = v; }
+    public void setNombre(String v) { this.nombre = v; }
+    public String getCategoria() { return categoria; }
+    public void setCategoria(String v) { this.categoria = v; }
+    public String getModoControl() { return modoControl; }
+    public void setModoControl(String v) { this.modoControl = v; }
+    public BigDecimal getPresentacion() { return presentacion; }
+    public void setPresentacion(BigDecimal v) { this.presentacion = v; }
+    public String getUnidad() { return unidad; }
+    public void setUnidad(String v) { this.unidad = v; }
+    public BigDecimal getRendimiento() { return rendimiento; }
+    public void setRendimiento(BigDecimal v) { this.rendimiento = v; }
+    public String getImagenUrl() { return imagenUrl; }
+    public void setImagenUrl(String v) { this.imagenUrl = v; }
+    public boolean isActivo() { return activo; }
+    public void setActivo(boolean v) { this.activo = v; }
 }

@@ -223,3 +223,10 @@ input, select { padding: 8px 10px; border: 1px solid var(--borde); border-radius
 .fila-servicio .datos-servicio { flex: 1 1 200px; display: flex; flex-direction: column; }
 .fila-servicio .acciones { display: flex; gap: 6px; align-items: center; }
 .chip.peligro { background: #fbe9ec; border-color: #d98a99; color: #a4243f; }
+
+/* Agregar y editar productos */
+.encabezado-accion { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.foto-producto { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; background: var(--rosa-suave, #fde8ec); }
+.tarjeta.oculto { opacity: .6; }
+.ventana .chips { margin: 0; }
+.tarjeta-cab > div { flex: 1; min-width: 0; }

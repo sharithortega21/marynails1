@@ -1,4 +1,4 @@
-import { Star, Plus, Minus, Check, ShoppingCart, X } from 'lucide-react'
+import { Star, Plus, Minus, Check, ShoppingCart, X, Pencil } from 'lucide-react'
 
 const ACABADOS = {
   CREMOSO: 'Cremoso', PERLADO: 'Perlado', TRASLUCIDO: 'Traslúcido', METALIZADO: 'Metalizado',
@@ -6,14 +6,15 @@ const ACABADOS = {
   'TRASLUCIDO/PERLADO': 'Traslúcido/perlado', 'PERLADO/METALIZADO': 'Perlado/metalizado',
 }
 
-export default function ProductoCard({ p, onCambiar }) {
+export default function ProductoCard({ p, onCambiar, onEditar }) {
   const esColor = Boolean(p.linea)
   const stock = Number(p.stockActual)
   const tengo = stock > 0
   const titulo = esColor ? p.codigo : p.nombre
 
   return (
-    <article className={tengo ? 'tarjeta tengo' : 'tarjeta'}>
+    <article className={(tengo ? 'tarjeta tengo' : 'tarjeta') + (p.activo === false ? ' oculto' : '')}>
+      {!esColor && p.imagenUrl && <img className="foto-producto" src={p.imagenUrl} alt={p.nombre} loading="lazy" />}
       {esColor && (
         <div className={p.hex ? 'muestra' : 'muestra sin-color'} style={p.hex ? { background: p.hex } : undefined}
              title={p.hex ? `${p.linea} ${p.codigo} · ${p.hex}` : 'Color por cargar'} aria-hidden="true" />
@@ -23,6 +24,7 @@ export default function ProductoCard({ p, onCambiar }) {
           {esColor && <span className="linea">{p.linea}</span>}
           <h3>{titulo}</h3>
         </div>
+        <button className="icono" onClick={onEditar} aria-label={`Editar ${titulo}`} title="Editar"><Pencil size={16} /></button>
         <button
           className={p.esHabitual ? 'icono estrella activa' : 'icono estrella'}
           onClick={() => onCambiar(p.id, p.esHabitual ? { esHabitual: false } : { esHabitual: true, cantidadHabitual: Number(p.cantidadHabitual) > 0 ? Number(p.cantidadHabitual) : 1 })}
@@ -38,6 +40,9 @@ export default function ProductoCard({ p, onCambiar }) {
         {p.acabado && <span className="etiqueta">{ACABADOS[p.acabado] || p.acabado}</span>}
         {p.esCritico && <span className="etiqueta critico">Crítico</span>}
         {!esColor && <span className="etiqueta suave">{p.categoria}</span>}
+        {p.modoControl === 'CONSUMO' && p.rendimiento && <span className="etiqueta suave">Rinde {Number(p.rendimiento)} arreglos</span>}
+        {p.modoControl === 'TIEMPO' && p.rendimiento && <span className="etiqueta suave">Se renueva cada {Number(p.rendimiento)} días</span>}
+        {p.activo === false && <span className="etiqueta">Oculto</span>}
       </div>
 
       {esColor ? (
