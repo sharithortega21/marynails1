@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { LogOut, Palette, ShoppingBag, CalendarDays, Users, Home, Wallet, Scissors, Info } from 'lucide-react'
+import { KeyRound, LogOut, Palette, ShoppingBag, CalendarDays, Users, Home, Wallet, Scissors, Info } from 'lucide-react'
 import { api, hayToken, setToken } from './api.js'
 import Login from './components/Login.jsx'
 import Catalogo from './components/Catalogo.jsx'
@@ -10,6 +10,7 @@ import Agenda from './components/Agenda.jsx'
 import Clientas from './components/Clientas.jsx'
 import Servicios from './components/Servicios.jsx'
 import AcercaDe from './components/AcercaDe.jsx'
+import CambiarClave from './components/CambiarClave.jsx'
 
 function leerUsuario() {
   try { return JSON.parse(sessionStorage.getItem('mn_usuario')) } catch { return null }
@@ -18,6 +19,7 @@ function leerUsuario() {
 export default function App() {
   const [usuario, setUsuario] = useState(() => (hayToken() ? leerUsuario() : null))
   const [vista, setVista] = useState('inicio')
+  const [cambiandoClave, setCambiandoClave] = useState(false)
 
   useEffect(() => {
     const salir = () => setUsuario(null)
@@ -67,11 +69,15 @@ export default function App() {
         </nav>
         <div className="usuario">
           <span>{usuario.nombre}</span>
+          <button className="icono" onClick={() => setCambiandoClave(true)} aria-label="Cambiar clave" title="Cambiar clave">
+            <KeyRound size={18} />
+          </button>
           <button className="icono" onClick={salir} aria-label="Cerrar sesión" title="Cerrar sesión">
             <LogOut size={18} />
           </button>
         </div>
       </header>
+      {cambiandoClave && <CambiarClave onCerrar={() => setCambiandoClave(false)} />}
       <main className="contenido">
         {vista === 'inicio' ? <Inicio ir={setVista} usuario={usuario} /> : vista === 'acerca' ? <AcercaDe /> : vista === 'servicios' && esMary ? <Servicios /> : vista === 'catalogo' ? <Catalogo /> : vista === 'compras' ? <Compras /> : vista === 'clientas' && esMary ? <Clientas /> : vista === 'finanzas' && esMary ? <Finanzas /> : <Agenda soloVer={!esMary} />}
       </main>

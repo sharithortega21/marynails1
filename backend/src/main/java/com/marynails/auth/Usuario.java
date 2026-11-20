@@ -27,4 +27,5 @@ public class Usuario {
     public String getCorreo() { return correo; }
     public String getClaveHash() { return claveHash; }
     public String getRol() { return rol; }
+    public void setClaveHash(String claveHash) { this.claveHash = claveHash; }
 }

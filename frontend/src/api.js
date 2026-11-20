@@ -39,6 +39,7 @@ async function pedir(ruta, opciones = {}) {
 
 export const api = {
   login: (correo, clave) => pedir('/api/auth/login', { method: 'POST', body: JSON.stringify({ correo, clave }) }),
+  cambiarClave: (actual, nueva) => pedir('/api/auth/clave', { method: 'POST', body: JSON.stringify({ actual, nueva }) }),
   categorias: () => pedir('/api/categorias'),
   lineas: () => pedir('/api/lineas-color'),
   productos: (p) => pedir('/api/productos?' + new URLSearchParams(p)),

@@ -123,6 +123,18 @@ class MaryNailsApiTest {
         assertThat(pedir("PATCH", "/api/citas/" + cita.get("id").asLong(), sharith, "{\"estado\":\"ATENDIDA\"}").estado()).isEqualTo(403);
     }
 
+    @Test
+    @DisplayName("Cada una puede cambiar su clave: pide la actual y minimo 10 caracteres")
+    void cambiarClave() throws Exception {
+        assertThat(pedir("POST", "/api/auth/clave", sharith, "{\"actual\":\"mala\",\"nueva\":\"OtraClave2026\"}").estado()).isEqualTo(400);
+        assertThat(pedir("POST", "/api/auth/clave", sharith, "{\"actual\":\"Prueba12345\",\"nueva\":\"corta\"}").estado()).isEqualTo(400);
+        assertThat(pedir("POST", "/api/auth/clave", null, "{\"actual\":\"Prueba12345\",\"nueva\":\"OtraClave2026\"}").estado()).isEqualTo(401);
+        assertThat(pedir("POST", "/api/auth/clave", sharith, "{\"actual\":\"Prueba12345\",\"nueva\":\"OtraClave2026\"}").estado()).isEqualTo(204);
+        assertThat(pedir("POST", "/api/auth/login", null, "{\"correo\":\"sharith@prueba.com\",\"clave\":\"OtraClave2026\"}").estado()).isEqualTo(200);
+        // se deja como estaba para las demas pruebas
+        assertThat(pedir("POST", "/api/auth/clave", sharith, "{\"actual\":\"OtraClave2026\",\"nueva\":\"Prueba12345\"}").estado()).isEqualTo(204);
+    }
+
     // ---------- agenda ----------
 
     @Test
