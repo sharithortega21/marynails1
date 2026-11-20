@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, Plus, MessageCircle, Clock, MapPin, Home, CalendarPlus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, MessageCircle, Clock, MapPin, Home, CalendarPlus, HeartPulse } from 'lucide-react'
 import { api } from '../api.js'
 import { diaMes, hora12, hoy, lunesDe, nombreDia, pesos, sumarDias } from '../fechas.js'
 import NuevaCita from './NuevaCita.jsx'
@@ -58,6 +58,7 @@ function CitaTarjeta({ c, onCambiar, onBorrar, soloVer }) {
         </div>
         <div className="cita-servicio">{c.turnos > 1 && <b>{c.turnos} turnos · </b>}{c.servicio} <span className="suave">· unos {c.duracionMin * c.turnos} min{c.precioCobrado != null && ` · ${pesos(Number(c.precioCobrado) + Number(c.extraDiseno))}`}</span></div>
         {c.observaciones && <div className="suave nota">“{c.observaciones}”</div>}
+        {c.salud && <div className="salud-cita" role="note"><HeartPulse size={14} aria-hidden="true" /> Salud: {c.salud}</div>}
         {c.estado === 'ATENDIDA' && c.valorPagado != null && (
           <div className="pago">Pagó {pesos(c.valorPagado)}{c.medioPago ? ` · ${c.medioPago === 'EFECTIVO' ? 'efectivo' : 'transferencia'}` : ''}
             {Number(c.valorPagado) < Number(c.precioCobrado) + Number(c.extraDiseno) && <b> · debe {pesos(Number(c.precioCobrado) + Number(c.extraDiseno) - Number(c.valorPagado))}</b>}

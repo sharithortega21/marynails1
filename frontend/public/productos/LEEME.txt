@@ -1,0 +1,8 @@
+Fotos de los productos e insumos de Mary Nails.
+
+Cada producto ya apunta a su archivo en esta carpeta (migracion V17), por ejemplo
+/productos/lima_metalica.png. Basta con poner aqui la imagen con ese nombre exacto
+(en minusculas y sin tildes) para que aparezca en el catalogo; si falta, la tarjeta
+se ve sin imagen. La lista de nombres esta en Instrucciones_Gemini_imagenes_MaryNails.txt.
+
+Formato recomendado: PNG cuadrado de 512 x 512, fondo rosa claro #FDE8EC.

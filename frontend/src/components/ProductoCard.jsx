@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { deTexto, hoy } from '../fechas.js'
 import { Star, Plus, Minus, Check, ShoppingCart, X, Pencil, RefreshCw } from 'lucide-react'
 
@@ -9,6 +10,8 @@ const ACABADOS = {
 
 export default function ProductoCard({ p, onCambiar, onEditar, onRenovar }) {
   const esColor = Boolean(p.linea)
+  // Si la foto aún no está subida (o el enlace falla), la tarjeta se muestra sin imagen
+  const [sinFoto, setSinFoto] = useState(false)
   const stock = Number(p.stockActual)
   const tengo = stock > 0
   const titulo = esColor ? p.codigo : p.nombre
@@ -22,7 +25,7 @@ export default function ProductoCard({ p, onCambiar, onEditar, onRenovar }) {
 
   return (
     <article className={(tengo ? 'tarjeta tengo' : 'tarjeta') + (p.activo === false ? ' oculto' : '')}>
-      {!esColor && p.imagenUrl && <img className="foto-producto" src={p.imagenUrl} alt={p.nombre} loading="lazy" />}
+      {!esColor && p.imagenUrl && !sinFoto && <img className="foto-producto" src={p.imagenUrl} alt={p.nombre} loading="lazy" onError={() => setSinFoto(true)} />}
       {esColor && (
         <div className={p.hex ? 'muestra' : 'muestra sin-color'} style={p.hex ? { background: p.hex } : undefined}
              title={p.hex ? `${p.linea} ${p.codigo} · ${p.hex}` : 'Color por cargar'} aria-hidden="true" />

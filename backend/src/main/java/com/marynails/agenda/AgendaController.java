@@ -156,7 +156,7 @@ public class AgendaController {
         // Sharith ve la agenda para preparar el maletin, sin dinero, telefono ni notas de las clientas
         return lista.stream().map(c -> new CitaDto(c.id(), c.clienteId(), c.cliente(), null, c.barrio(), c.municipio(),
                 null, c.servicioId(), c.servicio(), c.duracionMin(), c.fecha(), c.hora(), c.turnos(), c.lugar(),
-                c.estado(), null, null, null, null, null)).toList();
+                c.estado(), null, null, null, null, null, null)).toList(); // Sharith no ve datos de salud
     }
 
     @PostMapping("/citas")

@@ -167,6 +167,16 @@ class MaryNailsApiTest {
         Respuesta ok = pedir("PATCH", "/api/clientas/" + c, mary, "{\"salud\":\"Alergia al acrilico\",\"autorizaSalud\":true}");
         assertThat(ok.estado()).isEqualTo(200);
         assertThat(ok.json().get("salud").asString()).isEqualTo("Alergia al acrilico");
+
+        // Mary ve la alerta en la tarjeta de la cita; Sharith no
+        LocalDate dia = diaLibre();
+        nuevaCita(c, servicio("Uñas tradicional dama (manos y pies)"), dia, "11:00");
+        String ruta = "/api/citas?desde=" + dia + "&hasta=" + dia;
+        JsonNode deMary = null, deSharith = null;
+        for (JsonNode n : pedir("GET", ruta, mary, null).json()) if (n.get("clienteId").asLong() == c) deMary = n;
+        for (JsonNode n : pedir("GET", ruta, sharith, null).json()) if (n.get("clienteId").asLong() == c) deSharith = n;
+        assertThat(deMary.get("salud").asString()).isEqualTo("Alergia al acrilico");
+        assertThat(deSharith.get("salud").isNull()).isTrue();
     }
 
     // ---------- inventario ----------
