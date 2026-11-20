@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { api } from '../api.js'
-import { pesos } from '../fechas.js'
+import { avisoHorario, pesos } from '../fechas.js'
 
 const FRECUENCIAS = [[15, '15 días'], [20, '20 días'], [30, '1 mes'], [45, '1 mes y medio'], [60, '2 meses']]
 
@@ -30,6 +30,18 @@ export default function NuevaCita({ fechaInicial, onCerrar, onCreada }) {
 
   const servicio = servicios.find((s) => String(s.id) === String(servicioId))
   const domingo = new Date(fecha + 'T00:00').getDay() === 0
+  const aviso = avisoHorario(hora, lugar)
+  // Cupo del día: cuántas personas ya hay agendadas (máximo de Mary)
+  const [cupo, setCupo] = useState(null)
+  useEffect(() => {
+    if (!fecha) return
+    let vivo = true
+    Promise.all([api.citas(fecha, fecha), api.reglasAgenda()])
+      .then(([cs, r]) => { if (vivo) setCupo({ ocupados: cs.filter((x) => x.estado === 'PROGRAMADA' || x.estado === 'ATENDIDA').reduce((a, x) => a + (x.turnos || 1), 0), maximo: r.maximoDia }) })
+      .catch(() => { if (vivo) setCupo(null) })
+    return () => { vivo = false }
+  }, [fecha])
+  const sinCupo = cupo && cupo.ocupados + Number(turnos || 1) > cupo.maximo
 
   async function guardar(e) {
     e.preventDefault()
@@ -136,6 +148,12 @@ export default function NuevaCita({ fechaInicial, onCerrar, onCreada }) {
           </label>
         </div>
         {domingo && <p className="aviso">Los domingos no se atiende; revisa la fecha.</p>}
+        {cupo && <p className={sinCupo ? 'error' : 'suave'}>Ese día: {cupo.ocupados} de {cupo.maximo} personas{sinCupo ? ' · no hay cupo para esta cita' : ''}.</p>}
+        {aviso && (
+          <p className="aviso">{aviso}
+            {aviso.includes('en su casa') && <> <button type="button" className="enlace-boton" onClick={() => setLugar('CASA_MARY')}>Cambiar a casa de Mary</button></>}
+          </p>
+        )}
 
         <div className="campo">
           <span className="etiqueta-campo">Lugar</span>

@@ -151,6 +151,42 @@ class MaryNailsApiTest {
     }
 
     @Test
+    @DisplayName("Maximo 6 personas por dia: la septima no se puede agendar")
+    void maximoSeisPorDia() throws Exception {
+        LocalDate dia = diaLibre();
+        long c = nuevaClienta("Clienta Cupo " + dia);
+        long s = servicio("Uñas tradicional dama (manos y pies)"); // 75 min por turno
+        assertThat(nuevaCita(c, s, dia, "06:00").estado()).isBetween(200, 201);
+        Respuesta grupo = pedir("POST", "/api/citas", mary, "{\"clienteId\":" + c + ",\"servicioId\":" + s
+                + ",\"fecha\":\"" + dia + "\",\"hora\":\"08:00\",\"turnos\":5}");
+        assertThat(grupo.estado()).as(grupo.cuerpo()).isBetween(200, 201);
+        Respuesta septima = nuevaCita(c, s, dia, "17:30");
+        assertThat(septima.estado()).isEqualTo(400);
+        assertThat(septima.cuerpo()).contains("máximo es 6");
+        // si una cancela, se libera el cupo
+        pedir("PATCH", "/api/citas/" + grupo.json().get("id").asLong(), mary, "{\"estado\":\"CANCELADA\"}");
+        assertThat(nuevaCita(c, s, dia, "17:30").estado()).isBetween(200, 201);
+    }
+
+    @Test
+    @DisplayName("El cupo de una cita cancelada se ofrece primero a clientas del mismo barrio sin cita")
+    void ofrecerCupo() throws Exception {
+        LocalDate dia = diaLibre();
+        long sector = jdbc.queryForObject("insert into sector (barrio, municipio) values (?, 'Cúcuta') returning id", Long.class, "Barrio " + dia);
+        long duena = nuevaClienta("Duena " + dia);
+        long vecina = nuevaClienta("Vecina " + dia);
+        pedir("PATCH", "/api/clientas/" + duena, mary, "{\"sectorId\":" + sector + "}");
+        pedir("PATCH", "/api/clientas/" + vecina, mary, "{\"sectorId\":" + sector + "}");
+        long cita = nuevaCita(duena, servicio("Uñas tradicional dama (manos y pies)"), dia, "09:00").json().get("id").asLong();
+        assertThat(pedir("GET", "/api/citas/" + cita + "/sugerencias", mary, null).estado()).isEqualTo(400); // aun programada
+        pedir("PATCH", "/api/citas/" + cita, mary, "{\"estado\":\"CANCELADA\"}");
+        JsonNode lista = pedir("GET", "/api/citas/" + cita + "/sugerencias", mary, null).json();
+        assertThat(lista.get(0).get("clienta").get("id").asLong()).isEqualTo(vecina);
+        assertThat(lista.get(0).get("mismoBarrio").asBoolean()).isTrue();
+        assertThat(pedir("GET", "/api/citas/" + cita + "/sugerencias", sharith, null).estado()).isEqualTo(403);
+    }
+
+    @Test
     @DisplayName("Atender descuenta la receta una sola vez y volver a programada lo devuelve")
     void descuentoIdempotente() throws Exception {
         long top = producto("Top coat (brillo semipermanente)");

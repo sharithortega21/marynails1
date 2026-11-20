@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +26,7 @@ public class CitaService {
 
     private static final Set<String> ESTADOS = Set.of("PROGRAMADA", "ATENDIDA", "CANCELADA", "NO_ASISTIO");
     private static final Set<String> LUGARES = Set.of("DOMICILIO", "CASA_MARY");
-    private static final Set<String> MEDIOS = Set.of("EFECTIVO", "TRANSFERENCIA");
+    private static final Set<String> MEDIOS = Set.of("EFECTIVO", "TRANSFERENCIA", "MIXTO");
 
     public record CitaNueva(Long clienteId, Long servicioId, LocalDate fecha, LocalTime hora, Integer turnos, String lugar,
                             String observaciones, BigDecimal precioCobrado) {}
@@ -38,13 +39,20 @@ public class CitaService {
     private final ClienteRepository clientes;
     private final CitaRepository citas;
     private final InventarioService inventario;
+    /** Maximo de personas (turnos) que Mary atiende en un dia: 2 o 3 en la manana y 2 o 3 en la tarde. */
+    private final int maximoDia;
 
     public CitaService(ServicioRepository servicios, ClienteRepository clientes, CitaRepository citas,
-                       InventarioService inventario) {
+                       InventarioService inventario, @Value("${app.agenda.maximo-dia:6}") int maximoDia) {
         this.servicios = servicios;
         this.clientes = clientes;
         this.citas = citas;
         this.inventario = inventario;
+        this.maximoDia = maximoDia;
+    }
+
+    public int maximoDia() {
+        return maximoDia;
     }
 
     /**
@@ -77,6 +85,7 @@ public class CitaService {
         if (in.lugar() != null) c.setLugar(valido(in.lugar(), LUGARES, "El lugar no es válido"));
         if (in.observaciones() != null) c.setObservaciones(limpio(in.observaciones()));
         validarCruce(null, c.getFecha(), c.getHora(), duracion(s, turnos));
+        validarCupo(null, c.getFecha(), turnos);
         citas.saveAndFlush(c);
         return citas.detalle(c.getId());
     }
@@ -107,6 +116,7 @@ public class CitaService {
         if (mueveHorario && !"CANCELADA".equals(c.getEstado()) && !"NO_ASISTIO".equals(c.getEstado())) {
             Servicio s = servicios.findById(c.getServicioId()).orElseThrow(() -> malo("Ese servicio no existe"));
             validarCruce(id, c.getFecha(), c.getHora(), duracion(s, c.getTurnos()));
+            validarCupo(id, c.getFecha(), c.getTurnos());
         }
         citas.flush();
         // Gasto por clientas: si quedo atendida descuenta la receta; si no, devuelve lo descontado
@@ -119,6 +129,41 @@ public class CitaService {
         if (!citas.existsById(id)) throw noExiste("Cita");
         inventario.devolver(id);
         citas.deleteById(id);
+    }
+
+    // ---------- cupo liberado ----------
+
+    public record Sugerencia(ClienteDto clienta, boolean mismoBarrio, boolean leToca, Long diasDesdeUltima) {}
+
+    /**
+     * Cuando una cita se cancela o la clienta no vino, a quien ofrecerle ese cupo:
+     * clientas sin cita programada, primero las del mismo barrio, luego las del mismo municipio,
+     * y dentro de cada grupo primero a las que ya les toca segun su frecuencia.
+     */
+    public List<Sugerencia> sugerenciasCupo(Long id) {
+        Cita c = citas.findById(id).orElseThrow(() -> noExiste("Cita"));
+        if (!"CANCELADA".equals(c.getEstado()) && !"NO_ASISTIO".equals(c.getEstado())) {
+            throw malo("Solo se ofrece el cupo de una cita cancelada o en la que la clienta no vino");
+        }
+        LocalDate hoy = LocalDate.now();
+        List<ClienteDto> todas = clientes.todas(hoy);
+        ClienteDto duena = todas.stream().filter(x -> x.id().equals(c.getClienteId())).findFirst().orElse(null);
+        Long sector = duena == null ? null : duena.sectorId();
+        String municipio = duena == null ? null : duena.municipio();
+        return todas.stream()
+                .filter(x -> !x.id().equals(c.getClienteId()))
+                .filter(x -> x.proximaCita() == null)
+                .filter(x -> municipio == null || municipio.equals(x.municipio()))
+                .map(x -> {
+                    Long dias = x.ultimaCita() == null ? null : java.time.temporal.ChronoUnit.DAYS.between(x.ultimaCita(), c.getFecha());
+                    boolean toca = x.frecuenciaDias() != null && dias != null && dias >= x.frecuenciaDias();
+                    return new Sugerencia(x, sector != null && sector.equals(x.sectorId()), toca, dias);
+                })
+                .sorted(java.util.Comparator.comparing((Sugerencia g) -> !g.mismoBarrio())
+                        .thenComparing(g -> !g.leToca())
+                        .thenComparing(g -> g.diasDesdeUltima() == null ? -1 : -g.diasDesdeUltima()))
+                .limit(8)
+                .toList();
     }
 
     private static int duracion(Servicio s, int turnos) {
@@ -143,6 +188,20 @@ public class CitaService {
                 throw malo("Se cruza con la cita de " + otra.cliente() + " (" + reloj(oi) + " a " + reloj(of)
                         + "). Elige otra hora.");
             }
+        }
+    }
+
+    /** Regla: maximo de personas por dia (suma de turnos de las citas programadas o atendidas). */
+    private void validarCupo(Long idPropio, LocalDate fecha, int turnos) {
+        int ocupados = citas.entre(fecha, fecha).stream()
+                .filter(o -> !o.id().equals(idPropio))
+                .filter(o -> "PROGRAMADA".equals(o.estado()) || "ATENDIDA".equals(o.estado()))
+                .mapToInt(o -> o.turnos() == null ? 1 : o.turnos())
+                .sum();
+        if (ocupados + turnos > maximoDia) {
+            int libres = Math.max(0, maximoDia - ocupados);
+            throw malo("Ese día ya tiene " + ocupados + (ocupados == 1 ? " persona" : " personas") + " y el máximo es "
+                    + maximoDia + (libres == 0 ? ". Elige otro día." : ": solo queda cupo para " + libres + "."));
         }
     }
 

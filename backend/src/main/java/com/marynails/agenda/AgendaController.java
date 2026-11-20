@@ -82,6 +82,18 @@ public class AgendaController {
         return citas.cambiar(id, in);
     }
 
+    /** A quien ofrecerle el cupo de una cita cancelada. */
+    @GetMapping("/citas/{id}/sugerencias")
+    public List<CitaService.Sugerencia> sugerencias(@PathVariable Long id) {
+        return citas.sugerenciasCupo(id);
+    }
+
+    /** Reglas de la agenda que el formulario muestra (por ahora, el maximo de personas por dia). */
+    @GetMapping("/agenda/reglas")
+    public java.util.Map<String, Integer> reglas() {
+        return java.util.Map.of("maximoDia", citas.maximoDia());
+    }
+
     @DeleteMapping("/citas/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void borrarCita(@PathVariable Long id) {

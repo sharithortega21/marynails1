@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Plus, MessageCircle, Clock, MapPin, Home, CalendarPlus, HeartPulse } from 'lucide-react'
 import { api } from '../api.js'
-import { diaMes, hora12, hoy, lunesDe, nombreDia, pesos, sumarDias } from '../fechas.js'
+import { avisoHorario, diaMes, hora12, hoy, lunesDe, nombreDia, pesos, sumarDias } from '../fechas.js'
+import CupoLibre from './CupoLibre.jsx'
 import NuevaCita from './NuevaCita.jsx'
 
 const ESTADOS = {
@@ -32,8 +33,10 @@ function googleCalendar(c) {
   return `https://calendar.google.com/calendar/render?${q}`
 }
 
+const MEDIOS = { EFECTIVO: 'efectivo', TRANSFERENCIA: 'transferencia', MIXTO: 'efectivo y transferencia' }
+
 function CitaTarjeta({ c, onCambiar, onBorrar, soloVer }) {
-  const [modo, setModo] = useState('')        // '', 'cobro', 'mover', 'borrar'
+  const [modo, setModo] = useState('')        // '', 'cobro', 'mover', 'borrar', 'cupo'
   const [valor, setValor] = useState(Number(c.precioCobrado) + Number(c.extraDiseno))
   const [extra, setExtra] = useState(Number(c.extraDiseno))
   const [medio, setMedio] = useState(c.medioPago || 'EFECTIVO')
@@ -60,7 +63,7 @@ function CitaTarjeta({ c, onCambiar, onBorrar, soloVer }) {
         {c.observaciones && <div className="suave nota">“{c.observaciones}”</div>}
         {c.salud && <div className="salud-cita" role="note"><HeartPulse size={14} aria-hidden="true" /> Salud: {c.salud}</div>}
         {c.estado === 'ATENDIDA' && c.valorPagado != null && (
-          <div className="pago">Pagó {pesos(c.valorPagado)}{c.medioPago ? ` · ${c.medioPago === 'EFECTIVO' ? 'efectivo' : 'transferencia'}` : ''}
+          <div className="pago">Pagó {pesos(c.valorPagado)}{c.medioPago ? ` · ${MEDIOS[c.medioPago] || c.medioPago}` : ''}
             {Number(c.valorPagado) < Number(c.precioCobrado) + Number(c.extraDiseno) && <b> · debe {pesos(Number(c.precioCobrado) + Number(c.extraDiseno) - Number(c.valorPagado))}</b>}
           </div>
         )}
@@ -75,6 +78,7 @@ function CitaTarjeta({ c, onCambiar, onBorrar, soloVer }) {
             {programada && <button className="secundario pequeno" onClick={() => setModo('mover')}>Editar</button>}
             {programada && enlace && <a className="secundario pequeno" href={enlace} target="_blank" rel="noreferrer"><MessageCircle size={14} /> Confirmar</a>}
             {programada && <a className="secundario pequeno" href={googleCalendar(c)} target="_blank" rel="noreferrer"><CalendarPlus size={14} /> Google Calendar</a>}
+            {(c.estado === 'CANCELADA' || c.estado === 'NO_ASISTIO') && c.fecha >= hoy() && <button className="secundario pequeno" onClick={() => setModo('cupo')}>Ofrecer el cupo</button>}
             <button className="enlace-boton" onClick={() => setModo('borrar')}>Quitar</button>
           </div>
         )}
@@ -92,7 +96,7 @@ function CitaTarjeta({ c, onCambiar, onBorrar, soloVer }) {
                      onChange={(e) => { const v = Number(e.target.value); setValor(Number(valor) - extra + v); setExtra(v) }} />
             </div>
             <label>Pagó<input type="number" min="0" step="1000" value={valor} onChange={(e) => setValor(Number(e.target.value))} /></label>
-            <label>Medio<select value={medio} onChange={(e) => setMedio(e.target.value)}><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option></select></label>
+            <label>Medio<select value={medio} onChange={(e) => setMedio(e.target.value)}><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option><option value="MIXTO">Mixto (efectivo y transferencia)</option></select></label>
             <div className="acciones"><button className="primario pequeno" type="submit">Guardar</button><button type="button" className="secundario pequeno" onClick={() => setModo('')}>Cancelar</button></div>
           </form>
         )}
@@ -102,9 +106,12 @@ function CitaTarjeta({ c, onCambiar, onBorrar, soloVer }) {
             <label>Fecha<input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} required /></label>
             <label>Hora<input type="time" value={hora} onChange={(e) => setHora(e.target.value)} required /></label>
             <label>Turnos<input type="number" min="1" max="30" value={turnos} onChange={(e) => setTurnos(e.target.value)} required /></label>
+            {avisoHorario(hora, c.lugar) && <p className="aviso">{avisoHorario(hora, c.lugar)}</p>}
             <div className="acciones"><button className="primario pequeno" type="submit">Guardar</button><button type="button" className="secundario pequeno" onClick={() => setModo('')}>Cancelar</button></div>
           </form>
         )}
+
+        {modo === 'cupo' && <CupoLibre cita={c} onCerrar={() => setModo('')} />}
 
         {modo === 'borrar' && (
           <div className="mini-form">
@@ -123,6 +130,8 @@ export default function Agenda({ soloVer = false }) {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
   const [nueva, setNueva] = useState(null) // fecha inicial o null
+  const [maximo, setMaximo] = useState(6)
+  useEffect(() => { api.reglasAgenda().then((r) => setMaximo(r.maximoDia)).catch(() => {}) }, [])
 
   const cargar = useCallback(async () => {
     setCargando(true)
@@ -169,11 +178,12 @@ export default function Agenda({ soloVer = false }) {
       {!cargando && dias.map((d) => {
         const delDia = citas.filter((c) => c.fecha === d)
         const sectores = [...new Set(delDia.filter((c) => c.estado !== 'CANCELADA' && c.barrio).map((c) => c.barrio))]
+        const personas = delDia.filter((c) => c.estado === 'PROGRAMADA' || c.estado === 'ATENDIDA').reduce((a, c) => a + (c.turnos || 1), 0)
         return (
           <div key={d} className={d === hoyTexto ? 'dia hoy' : 'dia'}>
             <div className="dia-cab">
               <h3>{nombreDia(d)} <span className="suave">{diaMes(d)}</span>{d === hoyTexto && <span className="etiqueta">Hoy</span>}</h3>
-              <span className="suave dia-resumen">{delDia.length ? `${delDia.length} ${delDia.length === 1 ? 'cita' : 'citas'}${sectores.length ? ' · ' + sectores.join(', ') : ''}` : 'Libre'}</span>
+              <span className="suave dia-resumen">{delDia.length ? `${personas} de ${maximo} personas${sectores.length ? ' · ' + sectores.join(', ') : ''}` : 'Libre'}</span>
               {!soloVer && <button className="icono" onClick={() => setNueva(d)} aria-label={`Agendar el ${nombreDia(d)}`}><Plus size={16} /></button>}
             </div>
             {delDia.map((c) => <CitaTarjeta key={c.id} c={c} onCambiar={cambiar} onBorrar={borrar} soloVer={soloVer} />)}
