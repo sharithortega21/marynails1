@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Search } from 'lucide-react'
+import { Search, Plus } from 'lucide-react'
 import { api } from '../api.js'
 import ProductoCard from './ProductoCard.jsx'
+import ProductoForm from './ProductoForm.jsx'
 
 const TAMANO = 100
 
@@ -14,6 +15,8 @@ export default function Catalogo() {
   const [busqueda, setBusqueda] = useState('')
   const [soloHabituales, setSoloHabituales] = useState(false)
   const [soloTengo, setSoloTengo] = useState(false)
+  const [ocultos, setOcultos] = useState(false)
+  const [formulario, setFormulario] = useState(null) // null cerrado, {} nuevo, {producto} editar
   const [items, setItems] = useState([])
   const [total, setTotal] = useState(0)
   const [pagina, setPagina] = useState(0)
@@ -36,7 +39,7 @@ export default function Catalogo() {
     setError('')
     try {
       const r = await api.productos({
-        categoria, linea, q: busqueda, soloHabituales, soloTengo, pagina: paraPagina, tamano: TAMANO,
+        categoria, linea, q: busqueda, soloHabituales, soloTengo, ocultos, pagina: paraPagina, tamano: TAMANO,
       })
       setItems((prev) => (paraPagina === 0 ? r.content : [...prev, ...r.content]))
       setTotal(r.totalElements)
@@ -46,7 +49,7 @@ export default function Catalogo() {
     } finally {
       setCargando(false)
     }
-  }, [categoria, linea, busqueda, soloHabituales, soloTengo])
+  }, [categoria, linea, busqueda, soloHabituales, soloTengo, ocultos])
 
   useEffect(() => { cargar(0) }, [cargar])
 
@@ -66,13 +69,31 @@ export default function Catalogo() {
     }
   }
 
+  async function renovar(id) {
+    try {
+      const nuevo = await api.renovar(id)
+      setItems((prev) => prev.map((p) => (p.id === id ? nuevo : p)))
+    } catch (e) { setError(e.message) }
+  }
+
+  function guardado(p, editado) {
+    setFormulario(null)
+    if (editado) setItems((prev) => prev.map((x) => (x.id === p.id ? p : x)).filter((x) => ocultos || x.activo))
+    else setItems((prev) => [p, ...prev])
+    api.categorias().then(setCategorias).catch(() => {})
+    api.lineas().then(setLineas).catch(() => {})
+  }
+
   const esEsmalte = categoria === 'Esmaltes' || linea !== ''
 
   return (
     <section>
-      <div className="encabezado">
-        <h2>Catálogo</h2>
-        <p className="suave">Marca lo que tienes y lo que usas siempre. {total} resultados.</p>
+      <div className="encabezado encabezado-accion">
+        <div>
+          <h2>Catálogo</h2>
+          <p className="suave">Marca lo que tienes y lo que usas siempre. {total} resultados.</p>
+        </div>
+        <button className="primario" onClick={() => setFormulario({})}><Plus size={18} /> Agregar producto</button>
       </div>
 
       <div className="chips" role="group" aria-label="Categorías">
@@ -106,18 +127,25 @@ export default function Catalogo() {
         <label className="interruptor">
           <input type="checkbox" checked={soloTengo} onChange={(e) => setSoloTengo(e.target.checked)} /> Solo los que tengo
         </label>
+        <label className="interruptor">
+          <input type="checkbox" checked={ocultos} onChange={(e) => setOcultos(e.target.checked)} /> Ver ocultos
+        </label>
       </div>
 
       {error && <p className="error" role="alert">{error}</p>}
 
       <div className="rejilla">
-        {items.map((p) => <ProductoCard key={p.id} p={p} onCambiar={cambiar} />)}
+        {items.map((p) => <ProductoCard key={p.id} p={p} onCambiar={cambiar} onEditar={() => setFormulario({ producto: p })} onRenovar={renovar} />)}
       </div>
 
       {!cargando && items.length === 0 && !error && <p className="vacio">No hay productos con esos filtros.</p>}
       {cargando && <p className="vacio">Cargando…</p>}
       {!cargando && items.length < total && (
         <div className="centro"><button className="secundario" onClick={() => cargar(pagina + 1)}>Cargar más ({total - items.length} restantes)</button></div>
+      )}
+      {formulario && (
+        <ProductoForm producto={formulario.producto} categorias={categorias} lineas={lineas}
+                      onCerrar={() => setFormulario(null)} onGuardado={guardado} />
       )}
     </section>
   )

@@ -1,4 +1,5 @@
-import { Star, Plus, Minus, Check, ShoppingCart, X } from 'lucide-react'
+import { deTexto, hoy } from '../fechas.js'
+import { Star, Plus, Minus, Check, ShoppingCart, X, Pencil, RefreshCw } from 'lucide-react'
 
 const ACABADOS = {
   CREMOSO: 'Cremoso', PERLADO: 'Perlado', TRASLUCIDO: 'Traslúcido', METALIZADO: 'Metalizado',
@@ -6,14 +7,22 @@ const ACABADOS = {
   'TRASLUCIDO/PERLADO': 'Traslúcido/perlado', 'PERLADO/METALIZADO': 'Perlado/metalizado',
 }
 
-export default function ProductoCard({ p, onCambiar }) {
+export default function ProductoCard({ p, onCambiar, onEditar, onRenovar }) {
   const esColor = Boolean(p.linea)
   const stock = Number(p.stockActual)
   const tengo = stock > 0
   const titulo = esColor ? p.codigo : p.nombre
+  const alcanza = p.modoControl === 'CONSUMO' && p.rendimiento ? Math.floor(stock * Number(p.rendimiento) + 0.0001) : null
+  let renovacion = null
+  if (p.modoControl === 'TIEMPO' && p.rendimiento && p.enUsoDesde) {
+    const uso = Math.round((deTexto(hoy()) - deTexto(p.enUsoDesde)) / 86400000)
+    const faltan = Number(p.rendimiento) - uso
+    renovacion = faltan <= 0 ? `Toca renovarla (lleva ${uso} días)` : `Renovar en ${faltan} ${faltan === 1 ? 'día' : 'días'}`
+  }
 
   return (
-    <article className={tengo ? 'tarjeta tengo' : 'tarjeta'}>
+    <article className={(tengo ? 'tarjeta tengo' : 'tarjeta') + (p.activo === false ? ' oculto' : '')}>
+      {!esColor && p.imagenUrl && <img className="foto-producto" src={p.imagenUrl} alt={p.nombre} loading="lazy" />}
       {esColor && (
         <div className={p.hex ? 'muestra' : 'muestra sin-color'} style={p.hex ? { background: p.hex } : undefined}
              title={p.hex ? `${p.linea} ${p.codigo} · ${p.hex}` : 'Color por cargar'} aria-hidden="true" />
@@ -23,6 +32,7 @@ export default function ProductoCard({ p, onCambiar }) {
           {esColor && <span className="linea">{p.linea}</span>}
           <h3>{titulo}</h3>
         </div>
+        <button className="icono" onClick={onEditar} aria-label={`Editar ${titulo}`} title="Editar"><Pencil size={16} /></button>
         <button
           className={p.esHabitual ? 'icono estrella activa' : 'icono estrella'}
           onClick={() => onCambiar(p.id, p.esHabitual ? { esHabitual: false } : { esHabitual: true, cantidadHabitual: Number(p.cantidadHabitual) > 0 ? Number(p.cantidadHabitual) : 1 })}
@@ -38,7 +48,19 @@ export default function ProductoCard({ p, onCambiar }) {
         {p.acabado && <span className="etiqueta">{ACABADOS[p.acabado] || p.acabado}</span>}
         {p.esCritico && <span className="etiqueta critico">Crítico</span>}
         {!esColor && <span className="etiqueta suave">{p.categoria}</span>}
+        {p.modoControl === 'CONSUMO' && p.rendimiento && <span className="etiqueta suave">Rinde {Number(p.rendimiento)} arreglos</span>}
+        {p.modoControl === 'TIEMPO' && p.rendimiento && <span className="etiqueta suave">Se renueva cada {Number(p.rendimiento)} días</span>}
+        {p.activo === false && <span className="etiqueta">Oculto</span>}
       </div>
+      {alcanza !== null && <p className={alcanza <= 5 ? 'rinde poco' : 'rinde'}>Alcanza para unos {alcanza} arreglos</p>}
+      {p.modoControl === 'TIEMPO' && p.rendimiento && (
+        <div className="renovar">
+          {renovacion && <span className={renovacion.startsWith('Toca') ? 'rinde poco' : 'rinde'}>{renovacion}</span>}
+          <button className="secundario pequeno" onClick={() => onRenovar(p.id)}>
+            <RefreshCw size={13} /> {p.enUsoDesde ? 'La renové hoy' : 'Empecé a usarla hoy'}
+          </button>
+        </div>
+      )}
 
       {esColor ? (
         <button

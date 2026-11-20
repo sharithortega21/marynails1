@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, Plus, MessageCircle, Clock, MapPin, Home } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, MessageCircle, Clock, MapPin, Home, CalendarPlus } from 'lucide-react'
 import { api } from '../api.js'
 import { diaMes, hora12, hoy, lunesDe, nombreDia, pesos, sumarDias } from '../fechas.js'
 import NuevaCita from './NuevaCita.jsx'
@@ -15,6 +15,21 @@ function whatsapp(tel, texto) {
   const n = (tel || '').replace(/\D/g, '')
   if (!n) return null
   return `https://wa.me/${n.length === 10 ? '57' + n : n}?text=${encodeURIComponent(texto)}`
+}
+
+/** Enlace que abre Google Calendar con la cita ya llena; Mary solo pulsa Guardar y recibe las notificaciones. */
+function googleCalendar(c) {
+  const [h, m] = c.hora.slice(0, 5).split(':').map(Number)
+  const inicio = new Date(`${c.fecha}T00:00:00`)
+  inicio.setHours(h, m)
+  const fin = new Date(inicio.getTime() + (c.duracionMin || 60) * (c.turnos || 1) * 60000)
+  const f = (d) => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}00`
+  const lugar = c.lugar === 'CASA_MARY' ? 'Casa de Mary' : [c.direccion, c.barrio, c.municipio].filter(Boolean).join(', ')
+  const detalle = [`${c.turnos > 1 ? c.turnos + ' turnos · ' : ''}${c.servicio}`, c.telefono ? `Tel: ${c.telefono}` : '', c.observaciones || ''].filter(Boolean).join('\n')
+  const q = new URLSearchParams({
+    action: 'TEMPLATE', text: `Uñas: ${c.cliente}`, dates: `${f(inicio)}/${f(fin)}`, ctz: 'America/Bogota', details: detalle, location: lugar,
+  })
+  return `https://calendar.google.com/calendar/render?${q}`
 }
 
 function CitaTarjeta({ c, onCambiar, onBorrar }) {
@@ -58,13 +73,23 @@ function CitaTarjeta({ c, onCambiar, onBorrar }) {
             {c.estado === 'ATENDIDA' && <button className="secundario pequeno" onClick={() => setModo('cobro')}>Cambiar cobro</button>}
             {programada && <button className="secundario pequeno" onClick={() => setModo('mover')}>Editar</button>}
             {programada && enlace && <a className="secundario pequeno" href={enlace} target="_blank" rel="noreferrer"><MessageCircle size={14} /> Confirmar</a>}
+            {programada && <a className="secundario pequeno" href={googleCalendar(c)} target="_blank" rel="noreferrer"><CalendarPlus size={14} /> Google Calendar</a>}
             <button className="enlace-boton" onClick={() => setModo('borrar')}>Quitar</button>
           </div>
         )}
 
         {modo === 'cobro' && (
           <form className="mini-form" onSubmit={(e) => { e.preventDefault(); onCambiar(c.id, { estado: 'ATENDIDA', extraDiseno: extra, valorPagado: valor, medioPago: medio }); setModo('') }}>
-            <label>Extra por diseño<input type="number" min="0" step="1000" value={extra} onChange={(e) => { const v = Number(e.target.value); setValor(Number(valor) - extra + v); setExtra(v) }} /></label>
+            <div className="extra-diseno">
+              <span>Extra por diseño: <b>{pesos(extra)}</b></span>
+              <div className="acciones">
+                {[0, 5000, 10000].map((v) => (
+                  <button type="button" key={v} className={extra === v ? 'chip activa' : 'chip'} onClick={() => { setValor(Number(valor) - extra + v); setExtra(v) }}>{v === 0 ? 'Sin extra' : pesos(v)}</button>
+                ))}
+              </div>
+              <input type="range" min="0" max="50000" step="1000" value={extra} aria-label="Ajustar extra por diseño"
+                     onChange={(e) => { const v = Number(e.target.value); setValor(Number(valor) - extra + v); setExtra(v) }} />
+            </div>
             <label>Pagó<input type="number" min="0" step="1000" value={valor} onChange={(e) => setValor(Number(e.target.value))} /></label>
             <label>Medio<select value={medio} onChange={(e) => setMedio(e.target.value)}><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option></select></label>
             <div className="acciones"><button className="primario pequeno" type="submit">Guardar</button><button type="button" className="secundario pequeno" onClick={() => setModo('')}>Cancelar</button></div>

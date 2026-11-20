@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { MessageCircle, Pencil, Plus, Search, X } from 'lucide-react'
+import { History, MessageCircle, Pencil, Plus, Search, X } from 'lucide-react'
 import { api } from '../api.js'
-import { deTexto, diaMes, hoy } from '../fechas.js'
+import { deTexto, diaMes, hoy, pesos } from '../fechas.js'
 
 const FRECUENCIAS = [[15, '15 días'], [20, '20 días'], [30, '1 mes'], [45, '1 mes y medio'], [60, '2 meses']]
 const MUNICIPIOS = ['Cúcuta', 'Villa del Rosario', 'Los Patios', 'El Zulia']
@@ -97,6 +97,54 @@ function Formulario({ clienta, onCerrar, onGuardada }) {
   )
 }
 
+const ESTADO_CITA = { PROGRAMADA: 'Programada', ATENDIDA: 'Atendida', CANCELADA: 'Canceló', NO_ASISTIO: 'No vino' }
+
+/** Historial de servicios de una clienta: lo que se hizo, cuánto pagó y lo que debe. */
+function Historial({ clienta, onCerrar }) {
+  const [citas, setCitas] = useState(null)
+  const [error, setError] = useState('')
+  useEffect(() => { api.historialClienta(clienta.id).then(setCitas).catch((e) => setError(e.message)) }, [clienta.id])
+  const atendidas = (citas || []).filter((c) => c.estado === 'ATENDIDA')
+  const total = atendidas.reduce((s, c) => s + Number(c.valorPagado || 0), 0)
+  const debe = atendidas.reduce((s, c) => s + Math.max(0, Number(c.precioCobrado) + Number(c.extraDiseno) - Number(c.valorPagado || 0)), 0)
+  const faltas = (citas || []).filter((c) => c.estado === 'CANCELADA' || c.estado === 'NO_ASISTIO').length
+  return (
+    <div className="velo" role="dialog" aria-modal="true" aria-label={`Historial de ${clienta.nombre}`}>
+      <div className="ventana">
+        <div className="ventana-cab">
+          <h3>Historial de {clienta.nombre.split(' ')[0]}</h3>
+          <button type="button" className="icono" onClick={onCerrar} aria-label="Cerrar"><X size={18} /></button>
+        </div>
+        {error && <p className="error" role="alert">{error}</p>}
+        {!citas && !error && <p className="vacio">Cargando…</p>}
+        {citas && (
+          <>
+            <div className="historial-resumen">
+              <span><b>{atendidas.length}</b> servicios</span>
+              <span><b>{pesos(total)}</b> pagado</span>
+              {debe > 0 && <span className="critico"><b>{pesos(debe)}</b> debe</span>}
+              {faltas > 0 && <span><b>{faltas}</b> {faltas === 1 ? 'cancelación' : 'cancelaciones'}</span>}
+            </div>
+            {citas.length === 0 && <p className="vacio">Aún no tiene citas.</p>}
+            <ul className="historial">
+              {citas.map((c) => (
+                <li key={c.id} className={c.estado === 'ATENDIDA' ? '' : 'suave'}>
+                  <div><strong>{diaMes(c.fecha)} {c.fecha.slice(0, 4)}</strong> · {c.turnos > 1 ? `${c.turnos} turnos · ` : ''}{c.servicio}</div>
+                  <div className="suave">
+                    {ESTADO_CITA[c.estado]}
+                    {c.estado === 'ATENDIDA' && ` · pagó ${pesos(c.valorPagado || 0)}${Number(c.extraDiseno) > 0 ? ` (extra ${pesos(c.extraDiseno)})` : ''}`}
+                    {c.observaciones && ` · “${c.observaciones}”`}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function Clientas() {
   const [lista, setLista] = useState([])
   const [cargando, setCargando] = useState(true)
@@ -104,6 +152,7 @@ export default function Clientas() {
   const [q, setQ] = useState('')
   const [filtro, setFiltro] = useState('todas') // todas | recontactar | <municipio>
   const [editando, setEditando] = useState(null) // null | 'nueva' | clienta
+  const [historial, setHistorial] = useState(null)
 
   const cargar = useCallback(async () => {
     setError('')
@@ -169,6 +218,7 @@ export default function Clientas() {
                 {toca && <span className="etiqueta critico">Escríbele · pasaron {dias} días</span>}
                 {enlace && <a className="primario pequeno" href={enlace} target="_blank" rel="noreferrer"><MessageCircle size={14} /> WhatsApp</a>}
                 {toca && !enlace && <span className="suave nota">Sin teléfono</span>}
+                <button className="secundario pequeno" onClick={() => setHistorial(c)}><History size={14} /> Historial</button>
                 <button className="secundario pequeno" onClick={() => setEditando(c)}><Pencil size={14} /> Editar</button>
               </div>
             </li>
@@ -176,6 +226,7 @@ export default function Clientas() {
         })}
       </ul>
 
+      {historial && <Historial clienta={historial} onCerrar={() => setHistorial(null)} />}
       {editando && <Formulario clienta={editando === 'nueva' ? null : editando} onCerrar={() => setEditando(null)} onGuardada={guardada} />}
     </section>
   )

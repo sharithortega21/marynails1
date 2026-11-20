@@ -10,17 +10,23 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
+    boolean existsByNombreIgnoreCase(String nombre);
+
+    boolean existsByNombreIgnoreCaseAndIdNot(String nombre, Long id);
+
+
     String CAMPOS = """
             select new com.marynails.catalogo.ProductoDto(
                 p.id, p.nombre, p.categoria, p.modoControl, p.presentacion, p.unidad, p.rendimiento,
                 p.stockActual, p.stockMinimo, p.cantidadHabitual, p.porComprar, p.esHabitual, p.esCritico, p.imagenUrl,
-                c.linea, c.codigo, c.acabado, c.familiaColor, c.hex)
+                c.linea, c.codigo, c.acabado, c.familiaColor, c.hex, p.activo, p.enUsoDesde)
             from Producto p left join Color c on c.productoId = p.id
             """;
 
     /** Filtros con texto vacio = sin filtro (evita parametros nulos en PostgreSQL). */
     @Query(value = CAMPOS + """
-            where (:categoria = '' or p.categoria = :categoria)
+            where (:ocultos = true or p.activo = true)
+              and (:categoria = '' or p.categoria = :categoria)
               and (:linea = '' or c.linea = :linea)
               and (:soloHabituales = false or p.esHabitual = true)
               and (:soloTengo = false or p.stockActual > 0)
@@ -29,7 +35,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             """,
             countQuery = """
             select count(p) from Producto p left join Color c on c.productoId = p.id
-            where (:categoria = '' or p.categoria = :categoria)
+            where (:ocultos = true or p.activo = true)
+              and (:categoria = '' or p.categoria = :categoria)
               and (:linea = '' or c.linea = :linea)
               and (:soloHabituales = false or p.esHabitual = true)
               and (:soloTengo = false or p.stockActual > 0)
@@ -38,18 +45,25 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     Page<ProductoDto> buscar(@Param("categoria") String categoria, @Param("linea") String linea,
                              @Param("soloHabituales") boolean soloHabituales,
                              @Param("soloTengo") boolean soloTengo,
-                             @Param("q") String q, Pageable pageable);
+                             @Param("q") String q, @Param("ocultos") boolean ocultos, Pageable pageable);
 
     @Query(CAMPOS + " where p.id = :id")
     ProductoDto detalle(@Param("id") Long id);
 
     @Query(CAMPOS + """
-            where p.porComprar > 0
+            where p.activo = true and (p.porComprar > 0
                or (p.esHabitual = true and p.stockActual < p.cantidadHabitual)
-               or (p.esCritico = true and p.stockActual <= p.stockMinimo)
+               or (p.esCritico = true and p.stockActual <= p.stockMinimo))
             order by p.esCritico desc, p.categoria, p.nombre
             """)
     List<ProductoDto> faltantes();
+
+    /** Productos por tiempo que ya cumplieron sus dias de uso (o estan a 3 dias de cumplirlos). */
+    @Query(CAMPOS + """
+            where p.activo = true and p.modoControl = 'TIEMPO' and p.enUsoDesde is not null and p.rendimiento is not null
+            order by p.enUsoDesde
+            """)
+    List<ProductoDto> enUsoPorTiempo();
 
     interface Conteo {
         String getNombre();
@@ -60,14 +74,14 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @Query("""
             select p.categoria as nombre, count(p) as total,
                    sum(case when p.stockActual > 0 then 1 else 0 end) as tengo
-            from Producto p group by p.categoria order by p.categoria
+            from Producto p where p.activo = true group by p.categoria order by p.categoria
             """)
     List<Conteo> categorias();
 
     @Query("""
             select c.linea as nombre, count(c) as total,
                    sum(case when p.stockActual > 0 then 1 else 0 end) as tengo
-            from Color c join Producto p on p.id = c.productoId group by c.linea order by c.linea
+            from Color c join Producto p on p.id = c.productoId where p.activo = true group by c.linea order by c.linea
             """)
     List<Conteo> lineas();
 }

@@ -14,6 +14,7 @@ public class Movimiento {
     private LocalDate fecha = LocalDate.now();
     private String tipo;
     private BigDecimal cantidad;
+    private Long citaId;
 
     protected Movimiento() {}
 
@@ -22,4 +23,12 @@ public class Movimiento {
         this.tipo = tipo;
         this.cantidad = cantidad;
     }
+
+    public Movimiento(Long productoId, String tipo, BigDecimal cantidad, Long citaId) {
+        this(productoId, tipo, cantidad);
+        this.citaId = citaId;
+    }
+
+    public Long getProductoId() { return productoId; }
+    public BigDecimal getCantidad() { return cantidad; }
 }
