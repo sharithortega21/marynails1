@@ -174,7 +174,8 @@ button.kpi:hover { border-color: var(--rosa); }
 .panel { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: var(--radio); padding: 14px 16px; box-shadow: var(--sombra); }
 .panel h3, .sub { font-family: Georgia, serif; font-size: 1.1rem; margin: 10px 0 6px; display: flex; align-items: center; gap: 6px; }
 .mini { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-.mini li { display: flex; gap: 8px; align-items: baseline; justify-content: space-between; }
+.mini li { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; justify-content: space-between; }
+.mini li > span:first-child { flex: 1 1 140px; min-width: 0; }
 .mini .ok { color: var(--verde); font-style: normal; font-size: .85rem; }
 .mini .aviso { background: var(--ambar-suave); color: var(--ambar); font-style: normal; font-size: .8rem; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
 .boton { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; padding: 8px 14px; border-radius: 999px; background: var(--verde); color: #fff; font-weight: 600; text-decoration: none; }
@@ -226,7 +227,7 @@ input, select { padding: 8px 10px; border: 1px solid var(--borde); border-radius
 
 /* Agregar y editar productos */
 .encabezado-accion { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
-.foto-producto { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; background: var(--rosa-suave, #fde8ec); }
+.foto-producto { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; border-radius: 12px; background: #fde8ec; }
 .tarjeta.oculto { opacity: .6; }
 .ventana .chips { margin: 0; }
 .tarjeta-cab > div { flex: 1; min-width: 0; }
@@ -254,3 +255,16 @@ input, select { padding: 8px 10px; border: 1px solid var(--borde); border-radius
 .maletin li.listo span:not(.suave) { text-decoration: line-through; color: var(--suave); }
 
 .renovar-hoy { font-size: .82rem; white-space: nowrap; }
+
+/* Salud y recordatorios de la clienta */
+.grupo-campos { border: 1px solid var(--borde); border-radius: 12px; padding: 10px 12px; display: grid; gap: 8px; margin: 0; }
+.grupo-campos legend { font-size: .88rem; font-weight: 700; padding: 0 4px; }
+.grupo-campos textarea { width: 100%; padding: 9px 11px; border: 1px solid var(--borde); border-radius: 10px; font: inherit; resize: vertical; }
+.salud { font-size: .85rem; color: var(--rosa-fuerte); font-weight: 600; }
+/* ¿Cuándo se acaba? */
+.estado.estado-mal { background: #fbe4e2; color: #a4243f; }
+.estado.estado-aviso { background: var(--ambar-suave); color: var(--ambar); }
+.consumo-cuando { font-size: .88rem; font-weight: 600; margin-top: 2px; }
+
+/* Alerta de salud en la tarjeta de la cita (solo Mary) */
+.salud-cita { display: flex; align-items: center; gap: 6px; margin-top: 6px; padding: 4px 8px; border-radius: 8px; background: #fbe4e2; color: #a4243f; font-size: .85rem; font-weight: 600; }

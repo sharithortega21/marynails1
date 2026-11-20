@@ -7,6 +7,16 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    # PostgreSQL real para las pruebas de integracion (Flyway aplica todas las migraciones)
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mn_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     defaults:
       run:
         working-directory: backend
@@ -17,7 +27,7 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
-      - run: mvn -B -DskipTests package
+      - run: mvn -B verify
 
   frontend:
     runs-on: ubuntu-latest

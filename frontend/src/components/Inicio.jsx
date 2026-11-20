@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, Briefcase, CalendarCheck, MessageCircle, RefreshCw, ShoppingBag, UserRound, Wallet } from 'lucide-react'
+import { AlertTriangle, Bell, Briefcase, CalendarCheck, MessageCircle, RefreshCw, ShoppingBag, TrendingDown, UserRound, Wallet } from 'lucide-react'
 import { api } from '../api.js'
 import { aTexto, deTexto, hoy, hora12, pesos, sumarDias, nombreDia, diaMes } from '../fechas.js'
 
@@ -14,16 +14,33 @@ export default function Inicio({ ir, usuario }) {
     const h = hoy()
     const mes = h.slice(0, 8) + '01'
     const f = deTexto(h); const finMes = aTexto(new Date(f.getFullYear(), f.getMonth() + 1, 0))
-    Promise.all([api.citas(h, sumarDias(h, 1)), api.listaCompras(), api.clientas(), api.resumen(mes, finMes),
-      api.porRenovar(), api.maletin(sumarDias(h, 1))])
-      .then(([citas, faltantes, clientas, resumen, porRenovar, maletin]) => setDatos({ citas, faltantes, clientas, resumen, porRenovar, maletin }))
+    const esMary = usuario?.rol === 'PROPIETARIA'
+    Promise.all([api.citas(h, sumarDias(h, 1)), api.listaCompras(),
+      esMary ? api.clientas() : Promise.resolve([]),
+      esMary ? api.resumen(mes, finMes) : Promise.resolve(null),
+      api.porRenovar(), api.maletin(sumarDias(h, 1)), api.prediccion()])
+      .then(([citas, faltantes, clientas, resumen, porRenovar, maletin, prediccion]) => setDatos({ citas, faltantes, clientas, resumen, porRenovar, maletin, prediccion }))
       .catch((e) => setError(e.message))
-  }, [])
+  }, [usuario?.rol])
+
+  async function recordatorioHecho(id) {
+    try {
+      await api.editarClienta(id, { quitarRecordatorio: true })
+      setDatos((d) => ({ ...d, clientas: d.clientas.map((c) => (c.id === id ? { ...c, recordatorioFecha: null } : c)) }))
+    } catch (e) { setError(e.message) }
+  }
 
   async function renovar(id) {
     try {
       await api.renovar(id)
       setDatos((d) => ({ ...d, porRenovar: d.porRenovar.filter((r) => r.producto.id !== id) }))
+    } catch (e) { setError(e.message) }
+  }
+
+  async function aLista(id) {
+    try {
+      await api.actualizar(id, { porComprar: 1 })
+      setDatos((d) => ({ ...d, prediccion: d.prediccion.map((x) => (x.productoId === id ? { ...x, enLista: true } : x)) }))
     } catch (e) { setError(e.message) }
   }
 
@@ -35,6 +52,9 @@ export default function Inicio({ ir, usuario }) {
   const deHoy = activas.filter((c) => c.fecha === h)
   const deManana = activas.filter((c) => c.fecha === sumarDias(h, 1))
   const recontactar = datos.clientas.filter((c) => c.frecuenciaDias && c.ultimaCita && !c.proximaCita && diasEntre(c.ultimaCita, h) >= c.frecuenciaDias)
+  const recordatorios = datos.clientas.filter((c) => c.recordatorioFecha && c.recordatorioFecha <= h)
+  // Por clientas: lo que se acaba en una semana (o que ya no alcanza para lo agendado) y aún no está en la lista
+  const seAcaban = datos.prediccion.filter((p) => p.modoControl === 'CONSUMO' && (p.estado === 'AGOTADO' || p.estado === 'PRONTO') && !p.enLista && !datos.faltantes.some((f) => f.id === p.productoId))
   const mesActual = new Date().toLocaleDateString('es-CO', { month: 'long' })
 
   const texto = 'Lista de compras Mary Nails:\n' + datos.faltantes.map((p) => `- ${p.linea ? `${p.linea} ${p.codigo}` : p.nombre}`).join('\n')
@@ -49,8 +69,17 @@ export default function Inicio({ ir, usuario }) {
       <div className="kpis">
         <button className="kpi" onClick={() => ir('agenda')}><CalendarCheck size={20} /><strong>{deHoy.length}</strong><span>citas hoy</span></button>
         <button className="kpi" onClick={() => ir('compras')}><ShoppingBag size={20} /><strong>{datos.faltantes.length}</strong><span>por comprar</span></button>
-        <button className="kpi" onClick={() => ir('clientas')}><UserRound size={20} /><strong>{recontactar.length}</strong><span>por recontactar</span></button>
-        <button className="kpi" onClick={() => ir('finanzas')}><Wallet size={20} /><strong>{pesos(datos.resumen.ingresos)}</strong><span>ingresos de {mesActual}</span></button>
+        {datos.resumen ? (
+          <>
+            <button className="kpi" onClick={() => ir('clientas')}><UserRound size={20} /><strong>{recontactar.length}</strong><span>por recontactar</span></button>
+            <button className="kpi" onClick={() => ir('finanzas')}><Wallet size={20} /><strong>{pesos(datos.resumen.ingresos)}</strong><span>ingresos de {mesActual}</span></button>
+          </>
+        ) : (
+          <>
+            <button className="kpi" onClick={() => ir('catalogo')}><RefreshCw size={20} /><strong>{datos.porRenovar.length}</strong><span>por renovar</span></button>
+            <button className="kpi" onClick={() => ir('agenda')}><Briefcase size={20} /><strong>{datos.maletin.filter((i) => i.falta).length}</strong><span>faltan para mañana</span></button>
+          </>
+        )}
       </div>
 
       <div className="dos-columnas">
@@ -74,7 +103,7 @@ export default function Inicio({ ir, usuario }) {
 
         <div className="panel">
           <h3><AlertTriangle size={16} /> Alertas</h3>
-          {datos.faltantes.length === 0 && recontactar.length === 0 && datos.porRenovar.length === 0 && <p className="vacio">Todo en orden.</p>}
+          {datos.faltantes.length === 0 && recontactar.length === 0 && datos.porRenovar.length === 0 && recordatorios.length === 0 && seAcaban.length === 0 && <p className="vacio">Todo en orden.</p>}
           <ul className="mini">
             {datos.faltantes.slice(0, 6).map((p) => (
               <li key={p.id}>
@@ -83,6 +112,19 @@ export default function Inicio({ ir, usuario }) {
               </li>
             ))}
             {datos.faltantes.length > 6 && <li className="suave">y {datos.faltantes.length - 6} más en la lista…</li>}
+            {seAcaban.map((p) => (
+              <li key={'p' + p.productoId}>
+                <span><TrendingDown size={13} /> {p.nombre}</span>
+                <em className="aviso">{p.clientasRestantes <= 0 ? 'se acabó' : `quedan para ${p.clientasRestantes} ${p.clientasRestantes === 1 ? 'clienta' : 'clientas'}`}</em>
+                <button className="enlace-boton renovar-hoy" onClick={() => aLista(p.productoId)}>A la lista</button>
+              </li>
+            ))}
+            {recordatorios.map((c) => (
+              <li key={'n' + c.id}>
+                <span><Bell size={13} /> {c.nombre.split(' ')[0]}: {c.recordatorioTexto}</span>
+                <button className="enlace-boton renovar-hoy" onClick={() => recordatorioHecho(c.id)}>Hecho</button>
+              </li>
+            ))}
             {datos.porRenovar.map((r) => (
               <li key={'r' + r.producto.id}>
                 <span><RefreshCw size={13} /> Renovar {r.producto.nombre}</span>
@@ -113,7 +155,7 @@ export default function Inicio({ ir, usuario }) {
                   <span>{i.nombre}</span>
                 </label>
                 <span className="maletin-meta">
-                  <span className="suave">{i.arreglos > 0 ? `${i.arreglos} ${i.arreglos === 1 ? 'arreglo' : 'arreglos'}` : 'no puede faltar'}</span>
+                  <span className="suave">{i.arreglos > 0 ? `${i.arreglos} ${i.arreglos === 1 ? 'turno' : 'turnos'}` : 'no puede faltar'}</span>
                   {i.falta && <em className="aviso">no hay</em>}
                 </span>
               </li>

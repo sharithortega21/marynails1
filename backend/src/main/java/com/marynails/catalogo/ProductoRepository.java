@@ -19,7 +19,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             select new com.marynails.catalogo.ProductoDto(
                 p.id, p.nombre, p.categoria, p.modoControl, p.presentacion, p.unidad, p.rendimiento,
                 p.stockActual, p.stockMinimo, p.cantidadHabitual, p.porComprar, p.esHabitual, p.esCritico, p.imagenUrl,
-                c.linea, c.codigo, c.acabado, c.familiaColor, c.hex, p.activo, p.enUsoDesde)
+                c.linea, c.codigo, c.acabado, c.familiaColor, c.hex, p.activo, p.enUsoDesde, p.respaldo)
             from Producto p left join Color c on c.productoId = p.id
             """;
 

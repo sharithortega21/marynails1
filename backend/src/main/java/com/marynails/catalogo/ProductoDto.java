@@ -9,4 +9,4 @@ public record ProductoDto(
         BigDecimal presentacion, String unidad, BigDecimal rendimiento,
         BigDecimal stockActual, BigDecimal stockMinimo, BigDecimal cantidadHabitual, BigDecimal porComprar, boolean esHabitual, boolean esCritico,
         String imagenUrl, String linea, String codigo, String acabado, String familiaColor, String hex, boolean activo,
-        LocalDate enUsoDesde) {}
+        LocalDate enUsoDesde, boolean respaldo) {}

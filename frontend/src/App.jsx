@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { LogOut, Palette, ShoppingBag, CalendarDays, Users, Home, Wallet, Scissors, Info } from 'lucide-react'
+import { KeyRound, LogOut, Palette, ShoppingBag, CalendarDays, Users, Home, Wallet, Scissors, Info } from 'lucide-react'
 import { api, hayToken, setToken } from './api.js'
 import Login from './components/Login.jsx'
 import Catalogo from './components/Catalogo.jsx'
@@ -10,6 +10,7 @@ import Agenda from './components/Agenda.jsx'
 import Clientas from './components/Clientas.jsx'
 import Servicios from './components/Servicios.jsx'
 import AcercaDe from './components/AcercaDe.jsx'
+import CambiarClave from './components/CambiarClave.jsx'
 
 function leerUsuario() {
   try { return JSON.parse(sessionStorage.getItem('mn_usuario')) } catch { return null }
@@ -18,6 +19,7 @@ function leerUsuario() {
 export default function App() {
   const [usuario, setUsuario] = useState(() => (hayToken() ? leerUsuario() : null))
   const [vista, setVista] = useState('inicio')
+  const [cambiandoClave, setCambiandoClave] = useState(false)
 
   useEffect(() => {
     const salir = () => setUsuario(null)
@@ -39,6 +41,18 @@ export default function App() {
 
   if (!usuario) return <Login onEntrar={entrar} login={api.login} />
 
+  // Mary (PROPIETARIA) ve todo; Sharith (ADMIN) ve inventario, compras y la agenda solo para consultar
+  const esMary = usuario.rol === 'PROPIETARIA'
+  const pestanas = [
+    ['inicio', Home, 'Inicio'],
+    ['agenda', CalendarDays, 'Agenda'],
+    ...(esMary ? [['clientas', Users, 'Clientas'], ['servicios', Scissors, 'Servicios']] : []),
+    ['catalogo', Palette, 'Catálogo'],
+    ['compras', ShoppingBag, 'Compras'],
+    ...(esMary ? [['finanzas', Wallet, 'Finanzas']] : []),
+    ['acerca', Info, 'Acerca de'],
+  ]
+
   return (
     <div className="app">
       <header className="barra">
@@ -47,40 +61,25 @@ export default function App() {
           <span className="marca-nombre">Mary Nails</span>
         </div>
         <nav className="tabs">
-          <button className={vista === 'inicio' ? 'tab activa' : 'tab'} onClick={() => setVista('inicio')}>
-            <Home size={18} /> <span>Inicio</span>
-          </button>
-          <button className={vista === 'agenda' ? 'tab activa' : 'tab'} onClick={() => setVista('agenda')}>
-            <CalendarDays size={18} /> <span>Agenda</span>
-          </button>
-          <button className={vista === 'clientas' ? 'tab activa' : 'tab'} onClick={() => setVista('clientas')}>
-            <Users size={18} /> <span>Clientas</span>
-          </button>
-          <button className={vista === 'servicios' ? 'tab activa' : 'tab'} onClick={() => setVista('servicios')}>
-            <Scissors size={18} /> <span>Servicios</span>
-          </button>
-          <button className={vista === 'catalogo' ? 'tab activa' : 'tab'} onClick={() => setVista('catalogo')}>
-            <Palette size={18} /> <span>Catálogo</span>
-          </button>
-          <button className={vista === 'compras' ? 'tab activa' : 'tab'} onClick={() => setVista('compras')}>
-            <ShoppingBag size={18} /> <span>Compras</span>
-          </button>
-          <button className={vista === 'finanzas' ? 'tab activa' : 'tab'} onClick={() => setVista('finanzas')}>
-            <Wallet size={18} /> <span>Finanzas</span>
-          </button>
-          <button className={vista === 'acerca' ? 'tab activa' : 'tab'} onClick={() => setVista('acerca')}>
-            <Info size={18} /> <span>Acerca de</span>
-          </button>
+          {pestanas.map(([id, Icono, texto]) => (
+            <button key={id} className={vista === id ? 'tab activa' : 'tab'} onClick={() => setVista(id)}>
+              <Icono size={18} /> <span>{texto}</span>
+            </button>
+          ))}
         </nav>
         <div className="usuario">
           <span>{usuario.nombre}</span>
+          <button className="icono" onClick={() => setCambiandoClave(true)} aria-label="Cambiar clave" title="Cambiar clave">
+            <KeyRound size={18} />
+          </button>
           <button className="icono" onClick={salir} aria-label="Cerrar sesión" title="Cerrar sesión">
             <LogOut size={18} />
           </button>
         </div>
       </header>
+      {cambiandoClave && <CambiarClave onCerrar={() => setCambiandoClave(false)} />}
       <main className="contenido">
-        {vista === 'inicio' ? <Inicio ir={setVista} usuario={usuario} /> : vista === 'acerca' ? <AcercaDe /> : vista === 'servicios' ? <Servicios /> : vista === 'catalogo' ? <Catalogo /> : vista === 'compras' ? <Compras /> : vista === 'clientas' ? <Clientas /> : vista === 'finanzas' ? <Finanzas /> : <Agenda />}
+        {vista === 'inicio' ? <Inicio ir={setVista} usuario={usuario} /> : vista === 'acerca' ? <AcercaDe /> : vista === 'servicios' && esMary ? <Servicios /> : vista === 'catalogo' ? <Catalogo /> : vista === 'compras' ? <Compras /> : vista === 'clientas' && esMary ? <Clientas /> : vista === 'finanzas' && esMary ? <Finanzas /> : <Agenda soloVer={!esMary} />}
       </main>
     </div>
   )

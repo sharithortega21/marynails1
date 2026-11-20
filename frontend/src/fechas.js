@@ -10,3 +10,18 @@ export const nombreDia = (t) => DIAS[deTexto(t).getDay()]
 export const diaMes = (t) => { const d = deTexto(t); return `${d.getDate()} ${MESES[d.getMonth()]}` }
 export const hora12 = (h) => { const [H, M] = h.split(':').map(Number); return `${((H + 11) % 12) + 1}:${String(M).padStart(2, '0')} ${H < 12 ? 'a. m.' : 'p. m.'}` }
 export const pesos = (n) => '$' + Number(n || 0).toLocaleString('es-CO')
+
+/**
+ * Horario habitual de Mary: mañana de 6:00 a 12:00 y tarde de 2:30 a 6:30; después de las 6 p. m. atiende en su casa.
+ * Solo avisa (no bloquea), porque a veces hay excepciones.
+ */
+export function avisoHorario(hora, lugar) {
+  if (!hora) return ''
+  const [H, M] = hora.split(':').map(Number)
+  const m = H * 60 + M
+  if (m < 360) return 'Es antes de las 6:00 a. m., más temprano que el horario de Mary.'
+  if (m >= 720 && m < 870) return 'Entre las 12:00 y las 2:30 p. m. Mary no suele atender. Revisa la hora.'
+  if (m >= 1080 && lugar === 'DOMICILIO') return 'Después de las 6:00 p. m. Mary atiende en su casa.'
+  if (m >= 1200) return 'Es después de las 8:00 p. m., más tarde que el horario de Mary.'
+  return ''
+}

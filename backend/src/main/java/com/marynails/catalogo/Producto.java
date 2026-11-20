@@ -25,6 +25,7 @@ public class Producto {
     private String imagenUrl;
     private boolean activo = true;
     private LocalDate enUsoDesde;
+    private boolean respaldo;
 
     protected Producto() {}
 
@@ -65,4 +66,6 @@ public class Producto {
     public void setActivo(boolean v) { this.activo = v; }
     public LocalDate getEnUsoDesde() { return enUsoDesde; }
     public void setEnUsoDesde(LocalDate v) { this.enUsoDesde = v; }
+    public boolean isRespaldo() { return respaldo; }
+    public void setRespaldo(boolean v) { this.respaldo = v; }
 }

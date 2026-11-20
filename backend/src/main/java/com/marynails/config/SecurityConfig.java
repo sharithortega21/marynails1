@@ -34,6 +34,13 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/login", "/error", "/actuator/health", "/actuator/health/**",
                         "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                // Roles: Mary (PROPIETARIA) maneja citas, clientas, servicios y dinero.
+                // Sharith (ADMIN) maneja inventario y compras; de la agenda solo ve las citas (sin dinero ni notas).
+                .requestMatchers(HttpMethod.GET, "/api/citas").hasAnyRole("PROPIETARIA", "ADMIN")
+                .requestMatchers("/api/citas/**", "/api/clientas/**", "/api/sectores/**",
+                        "/api/gastos/**", "/api/finanzas/**").hasRole("PROPIETARIA")
+                .requestMatchers(HttpMethod.GET, "/api/servicios/**").authenticated()
+                .requestMatchers("/api/servicios/**").hasRole("PROPIETARIA")
                 .anyRequest().authenticated())
             .oauth2ResourceServer(o -> o.jwt(j -> j.jwtAuthenticationConverter(convertidor())));
         return http.build();

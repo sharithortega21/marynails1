@@ -21,7 +21,7 @@ public class ProductoService {
      */
     public record Datos(String nombre, String categoria, String modoControl, BigDecimal presentacion, String unidad,
                         BigDecimal rendimiento, BigDecimal stockActual, BigDecimal stockMinimo, Boolean esCritico,
-                        Boolean esHabitual, String imagenUrl,
+                        Boolean esHabitual, String imagenUrl, Boolean respaldo,
                         String linea, String codigo, String acabado, String familiaColor, String hex) {}
 
     private static final Set<String> MODOS = Set.of("MANUAL", "CONSUMO", "TIEMPO");
@@ -92,7 +92,7 @@ public class ProductoService {
         String modo = vacio(d.modoControl()) ? "MANUAL" : d.modoControl().trim().toUpperCase();
         if (!MODOS.contains(modo)) throw malo("El modo de control debe ser manual, por arreglos o por tiempo");
         if (!"MANUAL".equals(modo) && (d.rendimiento() == null || d.rendimiento().signum() <= 0)) {
-            throw malo("CONSUMO".equals(modo) ? "Escribe cuántos arreglos rinde" : "Escribe cada cuántos días se renueva");
+            throw malo("CONSUMO".equals(modo) ? "Escribe para cuántas clientas le dura" : "Escribe cada cuántos días lo compras o lo cambias");
         }
         if (d.presentacion() != null) validarNoNegativo(d.presentacion());
         if (d.stockMinimo() != null) validarNoNegativo(d.stockMinimo());
@@ -107,6 +107,7 @@ public class ProductoService {
         if (d.stockMinimo() != null) p.setStockMinimo(d.stockMinimo());
         if (d.esCritico() != null) p.setEsCritico(d.esCritico());
         p.setImagenUrl(vacio(d.imagenUrl()) ? null : d.imagenUrl().trim());
+        if (d.respaldo() != null) p.setRespaldo(d.respaldo());
     }
 
     private static void aplicarColor(Color c, Datos d) {

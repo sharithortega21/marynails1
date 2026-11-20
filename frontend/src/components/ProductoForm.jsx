@@ -3,17 +3,22 @@ import { X } from 'lucide-react'
 import { api } from '../api.js'
 
 const MODOS = [
-  ['MANUAL', 'Manual', 'Lo ajustas tú a mano (colores, decoración, ocasionales).'],
-  ['CONSUMO', 'Por arreglos', 'Se gasta con cada cita atendida. Ej.: la base rinde unos 25 arreglos.'],
-  ['TIEMPO', 'Por tiempo', 'Se renueva cada tantos días. Ej.: la lima metálica cada 45 días.'],
+  ['MANUAL', 'Fijo', 'Lo cuentas tú: subes o bajas el stock a mano (colores, decoración, ocasionales).'],
+  ['CONSUMO', 'Por clientas', 'Le dura para tantas clientas. Cada turno atendido descuenta; manos y pies cuentan como un turno. Ej.: el top coat dura unas 25 o 30 clientas.'],
+  ['TIEMPO', 'Por tiempo', 'Lo compras o lo cambias cada tanto tiempo. Ej.: la lima metálica cada mes y medio.'],
 ]
+// Atajos para no tener que escribir el número
+const ATAJOS = {
+  CONSUMO: [[20, '20'], [25, '25'], [30, '30'], [40, '40']],
+  TIEMPO: [[15, '15 días'], [30, '1 mes'], [45, 'Mes y medio'], [60, '2 meses'], [90, '3 meses']],
+}
 const UNIDADES = ['unidad', 'ml', 'L', 'g', 'paquete', 'caja']
 const ACABADOS = ['CREMOSO', 'PERLADO', 'TRASLUCIDO', 'METALIZADO', 'FOTOCROMATICO', 'DECORACION']
 const FAMILIAS = ['blanco', 'nude', 'rosado', 'rojo', 'vino', 'naranja', 'amarillo', 'verde', 'azul', 'morado', 'gris', 'negro', 'café', 'dorado', 'plateado']
 
 const vacio = {
   tipo: 'PRODUCTO', nombre: '', categoria: '', categoriaNueva: '', modoControl: 'MANUAL', presentacion: '', unidad: 'unidad',
-  rendimiento: '', stockActual: 0, stockMinimo: 0, esCritico: false, esHabitual: false, imagenUrl: '',
+  rendimiento: '', stockActual: 0, stockMinimo: 0, esCritico: false, esHabitual: false, imagenUrl: '', respaldo: false,
   linea: '', lineaNueva: '', codigo: '', acabado: 'CREMOSO', familiaColor: '', hex: '#e8a8be',
 }
 
@@ -42,7 +47,7 @@ export default function ProductoForm({ producto, categorias, lineas, onCerrar, o
       modoControl: f.modoControl, presentacion: num(f.presentacion), unidad: f.unidad,
       rendimiento: f.modoControl === 'MANUAL' ? null : num(f.rendimiento),
       stockActual: num(f.stockActual), stockMinimo: num(f.stockMinimo), esCritico: f.esCritico, esHabitual: f.esHabitual,
-      imagenUrl: f.imagenUrl,
+      imagenUrl: f.imagenUrl, respaldo: f.respaldo,
       ...(esColor ? {
         linea: f.linea === '__nueva' ? f.lineaNueva : f.linea, codigo: f.codigo, acabado: f.acabado,
         familiaColor: f.familiaColor, hex: f.hex,
@@ -165,8 +170,13 @@ export default function ProductoForm({ producto, categorias, lineas, onCerrar, o
         </div>
         {f.modoControl !== 'MANUAL' && (
           <label className="campo">
-            <span className="etiqueta-campo">{f.modoControl === 'CONSUMO' ? '¿Cuántos arreglos rinde cada uno?' : '¿Cada cuántos días se renueva?'}</span>
-            <input id="pf-rendimiento" type="number" min="1" step="1" value={f.rendimiento} onChange={(e) => cambiar('rendimiento', e.target.value)} required />
+            <span className="etiqueta-campo">{f.modoControl === 'CONSUMO' ? '¿Para cuántas clientas le dura cada uno?' : '¿Cada cuántos días lo compras o lo cambias?'}</span>
+            <div className="chips" role="group" aria-label="Atajos">
+              {ATAJOS[f.modoControl].map(([v, t]) => (
+                <button type="button" key={v} className={Number(f.rendimiento) === v ? 'chip activa' : 'chip'} onClick={() => cambiar('rendimiento', String(v))}>{t}</button>
+              ))}
+            </div>
+            <input id="pf-rendimiento" type="number" min="1" step="1" value={f.rendimiento} onChange={(e) => cambiar('rendimiento', e.target.value)} placeholder={f.modoControl === 'CONSUMO' ? 'O escribe el número de clientas' : 'O escribe el número de días'} required />
           </label>
         )}
 
@@ -206,6 +216,11 @@ export default function ProductoForm({ producto, categorias, lineas, onCerrar, o
             Habitual: lo uso siempre
           </label>
         )}
+
+        <label className="interruptor">
+          <input id="pf-respaldo" type="checkbox" checked={f.respaldo} onChange={(e) => cambiar('respaldo', e.target.checked)} />
+          Compra de respaldo: reponerlo cada mes y medio aunque no se acabe
+        </label>
 
         <label className="campo">
           <span className="etiqueta-campo">Imagen (opcional)</span>
