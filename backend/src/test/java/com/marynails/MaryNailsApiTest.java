@@ -169,6 +169,34 @@ class MaryNailsApiTest {
         assertThat(stock(top)).isEqualByComparingTo(antes);
     }
 
+    // ---------- compras y finanzas ----------
+
+    @Test
+    @DisplayName("Registrar una compra suma al stock y la saca de la lista de compras")
+    void compraSumaStock() throws Exception {
+        long lima = producto("Lima metálica");
+        pedir("PATCH", "/api/productos/" + lima, sharith, "{\"stockActual\":1,\"porComprar\":2}");
+        Respuesta r = pedir("POST", "/api/compras", sharith, "{\"proveedor\":\"Distribuidora\",\"detalles\":[{\"productoId\":"
+                + lima + ",\"cantidad\":2,\"costoUnitario\":8000}]}");
+        assertThat(r.estado()).as(r.cuerpo()).isBetween(200, 201);
+        assertThat(r.json().get("total").asInt()).isEqualTo(16000);
+        assertThat(stock(lima)).isEqualByComparingTo("3");
+        assertThat(jdbc.queryForObject("select por_comprar from producto where id = ?", BigDecimal.class, lima)).isEqualByComparingTo("0");
+        assertThat(pedir("POST", "/api/compras", sharith, "{\"detalles\":[]}").estado()).isEqualTo(400);
+    }
+
+    @Test
+    @DisplayName("Los gastos deben ser mayores que cero y entran al resumen del mes")
+    void gastosYResumen() throws Exception {
+        assertThat(pedir("POST", "/api/gastos", mary, "{\"categoria\":\"GASOLINA\",\"monto\":-5}").estado()).isEqualTo(400);
+        LocalDate dia = diaLibre();
+        Respuesta g = pedir("POST", "/api/gastos", mary, "{\"fecha\":\"" + dia + "\",\"categoria\":\"GASOLINA\",\"monto\":12000}");
+        assertThat(g.estado()).isBetween(200, 201);
+        JsonNode resumen = pedir("GET", "/api/finanzas/resumen?desde=" + dia + "&hasta=" + dia, mary, null).json();
+        assertThat(resumen.get("gastos").asInt()).isGreaterThanOrEqualTo(12000);
+        pedir("DELETE", "/api/gastos/" + g.json().get("id").asLong(), mary, null);
+    }
+
     // ---------- clientas ----------
 
     @Test
