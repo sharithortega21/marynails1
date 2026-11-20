@@ -4,7 +4,7 @@ Lista para dejar el sistema listo con datos reales. Se hace una sola vez y en es
 
 ## 1. Unir los cambios a `main`
 En GitHub, unir los Pull Requests en orden: primero el #6 (pie de página) y luego el #7. Después, el de cada rama siguiente:
-recetas-completas → roles → salud-recordatorios → compra-respaldo → prediccion-consumo → limpieza → pruebas → fotos-y-salud.
+recetas-completas → roles → salud-recordatorios → compra-respaldo → prediccion-consumo → limpieza → pruebas → fotos-y-salud → capa-servicios.
 Cada PR debe tener el CI en verde: compila y corre las pruebas automáticas. Render y Cloudflare publican solos al unir.
 
 ## 2. Apagar la demostración (Render)
