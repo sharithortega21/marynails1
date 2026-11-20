@@ -1,0 +1,14 @@
+.pie {
+  text-align: center;
+  padding: 16px;
+  color: #777;
+  font-size: 0.9rem;
+}
+.pie p { margin: 4px 0; }
+.pie a { color: #b5547a; font-weight: 600; }
+.pie-aviso {
+  background: #fff3cd;
+  color: #7a5b00;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
