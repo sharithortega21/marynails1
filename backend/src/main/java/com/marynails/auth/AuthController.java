@@ -34,8 +34,11 @@ public class AuthController {
     private final JwtEncoder jwt;
     private final long horas;
 
+    private final IntentosLogin intentos;
+
     public AuthController(UsuarioRepository usuarios, PasswordEncoder encoder, JwtEncoder jwt,
-                          @Value("${app.jwt.horas}") long horas) {
+                          @Value("${app.jwt.horas}") long horas, IntentosLogin intentos) {
+        this.intentos = intentos;
         this.usuarios = usuarios;
         this.encoder = encoder;
         this.jwt = jwt;
@@ -44,9 +47,19 @@ public class AuthController {
 
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest req) {
+        long espera = intentos.minutosBloqueado(req.correo());
+        if (espera > 0) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Demasiados intentos con clave incorrecta. Espera " + espera + (espera == 1 ? " minuto" : " minutos") + " e inténtalo de nuevo.");
+        }
         Usuario u = usuarios.findByCorreoIgnoreCase(req.correo().trim())
                 .filter(x -> encoder.matches(req.clave(), x.getClaveHash()))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Correo o clave incorrectos"));
+                .orElse(null);
+        if (u == null) {
+            intentos.fallo(req.correo());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Correo o clave incorrectos");
+        }
+        intentos.exito(req.correo());
         Instant ahora = Instant.now();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(u.getCorreo())

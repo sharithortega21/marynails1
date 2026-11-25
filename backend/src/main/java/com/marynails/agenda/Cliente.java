@@ -17,6 +17,7 @@ public class Cliente {
     private String observaciones;
     private String salud;
     private boolean autorizaSalud;
+    private java.time.LocalDate autorizaSaludFecha;
     private LocalDate recordatorioFecha;
     private String recordatorioTexto;
 
@@ -40,7 +41,13 @@ public class Cliente {
     public String getSalud() { return salud; }
     public void setSalud(String v) { this.salud = v; }
     public boolean isAutorizaSalud() { return autorizaSalud; }
-    public void setAutorizaSalud(boolean v) { this.autorizaSalud = v; }
+    /** Al autorizar se guarda la fecha (Ley 1581); al retirar la autorizacion se borra. */
+    public void setAutorizaSalud(boolean v) {
+        if (v && !this.autorizaSalud) this.autorizaSaludFecha = java.time.LocalDate.now();
+        if (!v) this.autorizaSaludFecha = null;
+        this.autorizaSalud = v;
+    }
+    public java.time.LocalDate getAutorizaSaludFecha() { return autorizaSaludFecha; }
     public void setRecordatorioFecha(LocalDate v) { this.recordatorioFecha = v; }
     public void setRecordatorioTexto(String v) { this.recordatorioTexto = v; }
 }

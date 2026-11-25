@@ -14,7 +14,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
                 c.frecuenciaDias, c.observaciones,
                 (select max(ci.fecha) from Cita ci where ci.clienteId = c.id and ci.estado = 'ATENDIDA'),
                 (select min(ci.fecha) from Cita ci where ci.clienteId = c.id and ci.estado = 'PROGRAMADA' and ci.fecha >= :hoy),
-                c.salud, c.autorizaSalud, c.recordatorioFecha, c.recordatorioTexto)
+                c.salud, c.autorizaSalud, c.recordatorioFecha, c.recordatorioTexto, c.autorizaSaludFecha)
             from Cliente c left join Sector s on s.id = c.sectorId
             """;
 

@@ -1,5 +1,7 @@
 # Paso a producción (uso real con Mary)
 
+> Para la feria **no** hace falta: se usa el modo demostración (`DEMO_DATOS=true`) y el botón **Reiniciar demostración** de Inicio. Ver `docs/GUION_FERIA.md`.
+
 Lista para dejar el sistema listo con datos reales. Se hace una sola vez y en este orden.
 
 ## 1. Unir los cambios a `main`
@@ -10,6 +12,7 @@ Cada PR debe tener el CI en verde: compila y corre las pruebas automáticas. Ren
 ## 2. Apagar la demostración (Render)
 En Render → servicio `marynails-api` → **Environment**:
 - `DEMO_DATOS` = `false`. **Hacerlo antes del paso 4**: si queda en `true`, al reiniciar vuelven las clientas de ejemplo.
+- `SWAGGER`: dejar sin poner (apagado). Solo `true` si hay que mostrar la documentación de la API.
 - `JWT_SECRET` = una frase nueva, larga y aleatoria (más de 40 caracteres).
 - Guardar y esperar el redespliegue.
 
