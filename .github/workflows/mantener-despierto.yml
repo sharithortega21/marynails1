@@ -7,7 +7,7 @@ name: Mantener despierto
 on:
   schedule:
     - cron: '*/10 10-23 * * 1-6'   # 5:00 a. m. a 6:59 p. m. de Colombia
-    - cron: '*/10 0-2 * * 2-7'     # 7:00 p. m. a 9:59 p. m. de Colombia (en UTC ya es el dia siguiente)
+    - cron: '*/10 0-2 * * 0,2-6'   # 7:00 p. m. a 9:59 p. m. de Colombia (en UTC ya es el dia siguiente; 0 = domingo)
   workflow_dispatch: {}            # tambien se puede lanzar a mano desde la pestana Actions
 
 jobs:
