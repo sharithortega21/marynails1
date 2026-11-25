@@ -2,7 +2,7 @@
 
 ## Antes de que llegue el público
 1. Abrir la página unos 5 minutos antes: Render duerme y el primer ingreso tarda cerca de un minuto.
-2. Entrar como **Mary** → al final de **Inicio**, **Reiniciar demostración**. Las citas quedan con fechas desde hoy.
+2. Entrar como **Mary** → al final de **Inicio**, **Reiniciar demostración**. Las citas quedan con fechas desde hoy (hacerlo el mismo 10 de diciembre en la mañana).
 3. Tener abierta en otra pestaña (o en el celular) la cuenta de **Sharith**.
 
 ## Recorrido
@@ -13,7 +13,7 @@
 - Alertas: el **top coat queda para unas 5 clientas**, las **limas que toca renovar**, el **recordatorio de Camila** y una **clienta por recontactar** (Lorena).
 - **Maletín para mañana**: lo que Mary debe llevar según las citas, con casillas para ir marcando.
 
-**3. Agenda (1 min).**
+**3. Agenda (1 min).** La semana se ve como una agenda real: 41 clientas, los 2 días anteriores ya atendidos y 8 días hacia adelante con 4 a 6 personas por día.
 - Cada día muestra **«4 de 6 personas»**. Pasado mañana está **lleno (6 de 6)**: intentar agendar otra cita → el sistema no deja.
 - **Nueva cita** a las 7:00 p. m. → avisa que a esa hora Mary atiende en su casa.
 - Cita de **Valentina**: alerta roja **«Salud: alergia al acrílico»** (guardada con su autorización, Ley 1581).
