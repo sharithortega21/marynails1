@@ -268,7 +268,3 @@ input, select { padding: 8px 10px; border: 1px solid var(--borde); border-radius
 
 /* Alerta de salud en la tarjeta de la cita (solo Mary) */
 .salud-cita { display: flex; align-items: center; gap: 6px; margin-top: 6px; padding: 4px 8px; border-radius: 8px; background: #fbe4e2; color: #a4243f; font-size: .85rem; font-weight: 600; }
-
-/* Modo demostración (feria) */
-.modo-demo { margin-top: 20px; padding: 10px 14px; border: 1px dashed var(--borde, #f0d5db); border-radius: 12px; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: .88rem; color: var(--suave, #7a666c); }
-.modo-demo-confirmar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }

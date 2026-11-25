@@ -163,46 +163,7 @@ export default function Inicio({ ir, usuario }) {
           </ul>
         </div>
       </div>
-      {usuario?.rol === 'PROPIETARIA' && <ModoDemo />}
     </section>
   )
 }
 
-/**
- * Solo en modo demostración (feria): avisa que los datos son de ejemplo y permite renovarlos con fechas desde hoy.
- * Si hay clientas reales el servidor no deja reiniciar.
- */
-function ModoDemo() {
-  const [estado, setEstado] = useState(null)
-  const [confirmar, setConfirmar] = useState(false)
-  const [trabajando, setTrabajando] = useState(false)
-  const [error, setError] = useState('')
-
-  useEffect(() => { api.demo().then(setEstado).catch(() => setEstado(null)) }, [])
-  if (!estado?.activo) return null
-
-  async function reiniciar() {
-    setTrabajando(true); setError('')
-    try {
-      await api.reiniciarDemo()
-      window.location.reload()
-    } catch (e) { setError(e.message); setTrabajando(false) }
-  }
-
-  return (
-    <div className="modo-demo" role="note">
-      <span><strong>Modo demostración.</strong> Las clientas, citas y cifras son de ejemplo.</span>
-      {estado.reiniciable && !confirmar && (
-        <button className="enlace-boton" onClick={() => setConfirmar(true)}>Reiniciar demostración</button>
-      )}
-      {confirmar && (
-        <span className="modo-demo-confirmar">
-          ¿Borrar los cambios y volver a los datos de ejemplo con fechas desde hoy?
-          <button className="primario pequeno" onClick={reiniciar} disabled={trabajando}>{trabajando ? 'Reiniciando…' : 'Sí, reiniciar'}</button>
-          <button className="secundario pequeno" onClick={() => setConfirmar(false)} disabled={trabajando}>No</button>
-        </span>
-      )}
-      {error && <p className="error" role="alert">{error}</p>}
-    </div>
-  )
-}

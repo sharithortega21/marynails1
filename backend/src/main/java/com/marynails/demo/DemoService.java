@@ -16,7 +16,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Datos de demostracion para la feria: cada funcion del sistema tiene algo que mostrar.
- * Las fechas se calculan desde el dia en que se cargan (sin domingos), asi la demostracion nunca envejece.
+ * Las fechas se calculan desde el dia en que se cargan (sin domingos) y se renuevan solas cada dia
+ * (al arrancar y a las 4:00 a. m.), asi la agenda siempre gira alrededor de "hoy".
  *
  * Seguridad: solo trabaja con DEMO_DATOS=true y solo reinicia si TODAS las clientas son de ejemplo
  * (telefono que empieza por 300111). Nunca borra datos reales.
@@ -46,18 +47,29 @@ public class DemoService implements ApplicationRunner {
         return reales != null && reales == 0;
     }
 
-    /** Al arrancar: si no hay datos los carga; si la demostracion quedo vieja (sin citas desde hoy), la renueva. */
+    /** Al arrancar: si no hay datos los carga; si la demostracion no es de hoy, la renueva. */
     @Override
     public void run(ApplicationArguments args) {
+        renovarSiHaceFalta();
+    }
+
+    /** Cada dia a las 4:00 a. m. (hora de Colombia) la demostracion vuelve a quedar alrededor de hoy. */
+    @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 4 * * *", zone = "America/Bogota")
+    public void renovarCadaDia() {
+        renovarSiHaceFalta();
+    }
+
+    synchronized void renovarSiHaceFalta() {
         if (!activo) return;
         Integer clientas = jdbc.queryForObject("select count(*) from cliente", Integer.class);
         if (clientas == null || clientas == 0) {
             cargar();
             return;
         }
-        Integer futuras = jdbc.queryForObject("select count(*) from cita where fecha >= current_date", Integer.class);
-        if ((futuras == null || futuras == 0) && reiniciable()) {
-            log.info("La demostracion estaba vieja: se renueva con fechas desde hoy");
+        String cargada = jdbc.query("select valor from app_estado where clave = 'demo_cargada'",
+                rs -> rs.next() ? rs.getString(1) : null);
+        if (!LocalDate.now().toString().equals(cargada) && reiniciable()) {
+            log.info("La demostracion era del {}: se renueva con fechas desde hoy", cargada);
             reiniciar();
         }
     }
@@ -359,6 +371,8 @@ public class DemoService implements ApplicationRunner {
             jdbc.update("insert into gasto (fecha, categoria, monto, descripcion) values (?,?,?,?)",
                     Date.valueOf(hoy.plusDays((Integer) g[0])), g[1], g[2], g[3]);
         }
+        jdbc.update("delete from app_estado where clave = 'demo_cargada'");
+        jdbc.update("insert into app_estado (clave, valor) values ('demo_cargada', ?)", hoy.toString());
         log.info("Datos de demostración cargados desde {}", hoy);
     }
 
