@@ -10,3 +10,8 @@ createRoot(document.getElementById('root')).render(
     <Pie />
   </StrictMode>,
 )
+
+// Permite instalar Mary Nails en el celular como una aplicacion (solo en la version publicada)
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}) })
+}
