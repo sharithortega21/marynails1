@@ -21,7 +21,7 @@
 - La cita **cancelada** (en 3 días) → **Ofrecer el cupo**: sugiere clientas del mismo barrio a las que ya les toca, con el WhatsApp listo.
 - Botones de **WhatsApp** y **Google Calendar**.
 
-**4. Clientas (30 s).** Frecuencia de visita y recontacto; **Historial** de Hermanas Angarita: 3 personas, pago mixto.
+**4. Clientas (30 s).** Frecuencia de visita y recontacto; **Historial** de Hermanas Angarita: dos personas en una visita, pago mixto. En la agenda, la Familia Contreras va con 3 turnos.
 
 **5. Catálogo (40 s).** 510 colores con su tono real; «lo tengo», habitual, «quiero comprar».
 **Agregar producto** → elegir cómo se gasta: **fijo, por clientas** («me dura 30 clientas») **o por tiempo** («lo compro cada mes»).
