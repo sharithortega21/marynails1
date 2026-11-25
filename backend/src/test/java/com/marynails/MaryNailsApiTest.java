@@ -124,6 +124,26 @@ class MaryNailsApiTest {
     }
 
     @Test
+    @DisplayName("Despues de 5 claves malas el correo queda bloqueado un rato")
+    void limiteDeIntentos() throws Exception {
+        String cuerpo = "{\"correo\":\"intruso@prueba.com\",\"clave\":\"adivinando\"}";
+        for (int i = 0; i < 5; i++) assertThat(pedir("POST", "/api/auth/login", null, cuerpo).estado()).isEqualTo(401);
+        Respuesta bloqueado = pedir("POST", "/api/auth/login", null, cuerpo);
+        assertThat(bloqueado.estado()).isEqualTo(429);
+        assertThat(bloqueado.cuerpo()).contains("Demasiados intentos");
+        assertThat(login("mary@prueba.com").estado()).isEqualTo(200); // a las demas no las afecta
+    }
+
+    @Test
+    @DisplayName("Sin modo demostracion no se puede reiniciar nada, y Swagger esta apagado")
+    void demoYSwagger() throws Exception {
+        assertThat(pedir("GET", "/api/demo", mary, null).cuerpo()).contains("\"activo\":false");
+        assertThat(pedir("POST", "/api/demo/reiniciar", mary, null).estado()).isEqualTo(400);
+        assertThat(pedir("POST", "/api/demo/reiniciar", sharith, null).estado()).isEqualTo(403);
+        assertThat(pedir("GET", "/v3/api-docs", null, null).estado()).isNotEqualTo(200);
+    }
+
+    @Test
     @DisplayName("Cada una puede cambiar su clave: pide la actual y minimo 10 caracteres")
     void cambiarClave() throws Exception {
         assertThat(pedir("POST", "/api/auth/clave", sharith, "{\"actual\":\"mala\",\"nueva\":\"OtraClave2026\"}").estado()).isEqualTo(400);
@@ -243,6 +263,7 @@ class MaryNailsApiTest {
         Respuesta ok = pedir("PATCH", "/api/clientas/" + c, mary, "{\"salud\":\"Alergia al acrilico\",\"autorizaSalud\":true}");
         assertThat(ok.estado()).isEqualTo(200);
         assertThat(ok.json().get("salud").asString()).isEqualTo("Alergia al acrilico");
+        assertThat(ok.json().get("autorizaSaludFecha").asString()).isEqualTo(LocalDate.now().toString());
 
         // Mary ve la alerta en la tarjeta de la cita; Sharith no
         LocalDate dia = diaLibre();

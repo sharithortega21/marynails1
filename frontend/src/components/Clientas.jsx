@@ -100,6 +100,9 @@ function Formulario({ clienta, onCerrar, onGuardada }) {
             <input id="cl-autoriza" type="checkbox" checked={f.autorizaSalud} onChange={(e) => setF({ ...f, autorizaSalud: e.target.checked })} />
             La clienta autoriza guardar sus datos de salud (Ley 1581 de 2012)
           </label>
+          {f.autorizaSalud && clienta?.autorizaSalud && clienta?.autorizaSaludFecha && (
+            <small className="suave">Autorizó el {diaMes(clienta.autorizaSaludFecha)} de {clienta.autorizaSaludFecha.slice(0, 4)}.</small>
+          )}
           {f.autorizaSalud && (
             <textarea id="cl-salud" rows="2" maxLength="300" value={f.salud} onChange={poner('salud')}
                       placeholder="Ej.: alérgica al acrílico, diabetes (cuidado con cortes en los pies)" />
