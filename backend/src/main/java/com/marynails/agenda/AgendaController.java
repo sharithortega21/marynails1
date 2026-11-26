@@ -72,6 +72,12 @@ public class AgendaController {
         return citas.entre(desde, hasta, esMary);
     }
 
+    /** Citas atendidas que quedaron pendientes por pago (solo Mary). */
+    @GetMapping("/citas/pendientes")
+    public List<CitaDto> pendientesDePago() {
+        return citas.pendientesDePago();
+    }
+
     @PostMapping("/citas")
     public CitaDto crearCita(@RequestBody CitaNueva in) {
         return citas.crear(in);

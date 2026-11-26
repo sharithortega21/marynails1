@@ -70,6 +70,11 @@ public class CitaService {
                 c.estado(), null, null, null, null, null, null)).toList();
     }
 
+    /** Pagos pendientes: citas atendidas que quedaron debiendo todo o una parte. */
+    public List<CitaDto> pendientesDePago() {
+        return citas.pendientesDePago();
+    }
+
     @Transactional
     public CitaDto crear(CitaNueva in) {
         if (in.clienteId() == null || !clientes.existsById(in.clienteId())) throw malo("Elige una clienta");

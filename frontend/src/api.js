@@ -68,6 +68,7 @@ export const api = {
   cambiarCita: (id, c) => pedir(`/api/citas/${id}`, { method: 'PATCH', body: JSON.stringify(c) }),
   borrarCita: (id) => pedir(`/api/citas/${id}`, { method: 'DELETE' }),
   sugerenciasCupo: (id) => pedir(`/api/citas/${id}/sugerencias`),
+  pagosPendientes: () => pedir('/api/citas/pendientes'),
   reglasAgenda: () => pedir('/api/agenda/reglas'),
   compras: (desde, hasta) => pedir('/api/compras?' + new URLSearchParams({ desde, hasta })),
   registrarCompra: (c) => pedir('/api/compras', { method: 'POST', body: JSON.stringify(c) }),

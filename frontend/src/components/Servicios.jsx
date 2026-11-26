@@ -3,6 +3,7 @@ import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { api } from "../api.js";
 import { pesos } from "../fechas.js";
 
+// Tecnica con que se hace el servicio (en la base se llama "familia")
 const FAMILIAS = [
   "TRADICIONAL",
   "SEMIPERMANENTE",
@@ -10,6 +11,13 @@ const FAMILIAS = [
   "SOFT_GEL",
   "RESINA",
 ];
+const TECNICA = {
+  TRADICIONAL: "Tradicional",
+  SEMIPERMANENTE: "Semipermanente",
+  MIXTO: "Mixto (manos semi + pies tradicional)",
+  SOFT_GEL: "Soft gel",
+  RESINA: "Resina",
+};
 const VACIO = {
   nombre: "",
   precio: "",
@@ -27,6 +35,10 @@ export default function Servicios() {
   const [confirmar, setConfirmar] = useState(null); // id que se quiere borrar
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
+  const [otraTecnica, setOtraTecnica] = useState(false); // escribir una tecnica nueva
+  // Tecnicas disponibles: las de siempre y las nuevas que Mary ya haya usado
+  const tecnicas = [...new Set([...FAMILIAS, ...servicios.map((s) => s.familia)])];
+  const nombreTecnica = (f) => TECNICA[f] || f;
 
   // GET /api/servicios (o /buscar si hay texto)
   function cargar() {
@@ -56,6 +68,7 @@ export default function Servicios() {
   function cancelar() {
     setEditando(null);
     setForm(VACIO);
+    setOtraTecnica(false);
   }
 
   // POST (crear) o PUT (actualizar)
@@ -109,6 +122,7 @@ export default function Servicios() {
     <section>
       <div className="encabezado">
         <h2>Servicios</h2>
+        <p className="suave">Lo que ofrece Mary: nombre, precio por persona, técnica y cuánto se demora. El precio y la duración se usan al agendar.</p>
       </div>
 
       <form className="form-servicio" onSubmit={guardar}>
@@ -131,17 +145,32 @@ export default function Servicios() {
           />
         </label>
         <label>
-          Familia
-          <select
-            value={form.familia}
-            onChange={(e) => cambiar("familia", e.target.value)}
-          >
-            {FAMILIAS.map((f) => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
-          </select>
+          Técnica
+          {otraTecnica ? (
+            <input
+              autoFocus
+              maxLength={40}
+              placeholder="Ej.: Acrílico"
+              value={form.familia}
+              onChange={(e) => cambiar("familia", e.target.value)}
+              onBlur={() => { if (!form.familia.trim()) { setOtraTecnica(false); cambiar("familia", "TRADICIONAL"); } }}
+            />
+          ) : (
+            <select
+              value={form.familia}
+              onChange={(e) => {
+                if (e.target.value === "__otra") { setOtraTecnica(true); cambiar("familia", ""); }
+                else cambiar("familia", e.target.value);
+              }}
+            >
+              {tecnicas.map((f) => (
+                <option key={f} value={f}>
+                  {nombreTecnica(f)}
+                </option>
+              ))}
+              <option value="__otra">+ Otra técnica…</option>
+            </select>
+          )}
         </label>
         <label>
           Duración (min)
@@ -182,20 +211,18 @@ export default function Servicios() {
         />
       </label>
 
-      <label>
-        Familia
-        <select
-          value={familiaFiltro}
-          onChange={(e) => setFamiliaFiltro(e.target.value)}
-        >
-          <option value="TODAS">Todas</option>
-          {FAMILIAS.map((f) => (
-            <option key={f} value={f}>
-              {f}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="chips" role="group" aria-label="Ver servicios por técnica">
+        {["TODAS", ...tecnicas].map((f) => (
+          <button
+            key={f}
+            type="button"
+            className={familiaFiltro === f ? "chip activa" : "chip"}
+            onClick={() => setFamiliaFiltro(f)}
+          >
+            {f === "TODAS" ? "Todos" : nombreTecnica(f).split(" (")[0]}
+          </button>
+        ))}
+      </div>
 
       {visibles.length === 0 && (
         <p className="vacio">No hay servicios para mostrar.</p>
@@ -206,7 +233,7 @@ export default function Servicios() {
             <div className="datos-servicio">
               <b>{s.nombre}</b>
               <small className="suave">
-                {s.familia} · {s.duracionMin} min
+                {nombreTecnica(s.familia)} · {s.duracionMin} min
               </small>
             </div>
             <strong>{pesos(s.precio)}</strong>

@@ -326,6 +326,15 @@ public class DemoService implements ApplicationRunner {
                     Date.valueOf(fecha), hora, lugar, c[5], turnos, c[7], atendida, turnos, c[7], c[6], (short) turnos,
                     c[0], c[3]);
         }
+        // Dos clientas que dijeron "te pago al rato": salen en "Pagos pendientes"
+        jdbc.update("""
+                update cita set valor_pagado = 0, medio_pago = null
+                where fecha = ? and cliente_id = (select id from cliente where nombre = 'Mónica Jaramillo')""",
+                Date.valueOf(habil(hoy, -1)));
+        jdbc.update("""
+                update cita set valor_pagado = 20000, medio_pago = 'EFECTIVO'
+                where fecha = ? and cliente_id = (select id from cliente where nombre = 'Claudia Rojas')""",
+                Date.valueOf(habil(hoy, -2)));
         // Lorena y Jenny: ultima cita hace mas de su frecuencia
         jdbc.update("""
                 insert into cita (cliente_id, servicio_id, fecha, hora, lugar, estado, precio_cobrado, extra_diseno, valor_pagado, medio_pago, turnos)

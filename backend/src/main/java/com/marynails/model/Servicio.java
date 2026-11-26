@@ -7,7 +7,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
@@ -33,9 +32,9 @@ public class Servicio {
     @Positive(message = "El precio debe ser mayor que cero")
     private BigDecimal precio;
 
-    @NotBlank(message = "La familia es obligatoria")
-    @Pattern(regexp = "TRADICIONAL|SEMIPERMANENTE|MIXTO|SOFT_GEL|RESINA",
-            message = "La familia debe ser TRADICIONAL, SEMIPERMANENTE, MIXTO, SOFT_GEL o RESINA")
+    // Tecnica del servicio (en la base se llama "familia"): las de siempre o una nueva que agregue Mary
+    @NotBlank(message = "Elige o escribe la técnica")
+    @Size(max = 40, message = "La técnica es muy larga (máximo 40 letras)")
     private String familia;
 
     @NotNull(message = "La duración es obligatoria")
@@ -56,7 +55,7 @@ public class Servicio {
     public void setPrecio(BigDecimal precio) { this.precio = precio; }
 
     public String getFamilia() { return familia; }
-    public void setFamilia(String familia) { this.familia = familia; }
+    public void setFamilia(String familia) { this.familia = familia == null ? null : familia.trim(); }
 
     public Short getDuracionMin() { return duracionMin; }
     public void setDuracionMin(Short duracionMin) { this.duracionMin = duracionMin; }
