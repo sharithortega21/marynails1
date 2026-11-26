@@ -45,7 +45,7 @@ function CitaTarjeta({ c, onCambiar, onBorrar, soloVer }) {
   const [turnos, setTurnos] = useState(c.turnos)
   const [etiqueta, clase] = ESTADOS[c.estado]
   const programada = c.estado === 'PROGRAMADA'
-  const enlace = whatsapp(c.telefono, `Hola ${c.cliente.split(' ')[0]}, te confirmo tu cita de uñas el ${nombreDia(c.fecha)} ${diaMes(c.fecha)} a las ${hora12(c.hora)}. ¡Nos vemos!`)
+  const enlace = whatsapp(c.telefono, `Hola ${c.cliente.split(' ')[0]}, te confirmo tu cita de uñas el ${nombreDia(c.fecha).toLowerCase()} ${diaMes(c.fecha)} a las ${hora12(c.hora)}. ¡Nos vemos!`)
 
   return (
     <article className={`cita ${clase}`}>
@@ -184,7 +184,7 @@ export default function Agenda({ soloVer = false }) {
             <div className="dia-cab">
               <h3>{nombreDia(d)} <span className="suave">{diaMes(d)}</span>{d === hoyTexto && <span className="etiqueta">Hoy</span>}</h3>
               <span className="suave dia-resumen">{delDia.length ? `${personas} de ${maximo} personas${sectores.length ? ' · ' + sectores.join(', ') : ''}` : 'Libre'}</span>
-              {!soloVer && <button className="icono" onClick={() => setNueva(d)} aria-label={`Agendar el ${nombreDia(d)}`}><Plus size={16} /></button>}
+              {!soloVer && <button className="icono" onClick={() => setNueva(d)} aria-label={`Agendar el ${nombreDia(d).toLowerCase()}`}><Plus size={16} /></button>}
             </div>
             {delDia.map((c) => <CitaTarjeta key={c.id} c={c} onCambiar={cambiar} onBorrar={borrar} soloVer={soloVer} />)}
           </div>
