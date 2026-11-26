@@ -1,6 +1,6 @@
 # Paso a producción (uso real con Mary)
 
-> Para la feria **no** hace falta: se usa el modo demostración (`DEMO_DATOS=true`) y el botón **Reiniciar demostración** de Inicio. Ver `docs/GUION_FERIA.md`.
+> Para la feria **no** hace falta: se usa el modo demostración (`DEMO_DATOS=true`), que se renueva sola cada día a las 4:00 a. m.. Ver `docs/GUION_FERIA.md`.
 
 Lista para dejar el sistema listo con datos reales. Se hace una sola vez y en este orden.
 

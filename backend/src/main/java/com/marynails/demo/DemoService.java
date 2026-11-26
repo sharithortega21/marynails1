@@ -348,7 +348,7 @@ public class DemoService implements ApplicationRunner {
         // Inventario: casi todo con existencias y algunos casos para las alertas
         jdbc.update("update producto p set stock_actual = 1 + (p.id % 3) "
                 + "where not exists (select 1 from color c where c.producto_id = p.id)");
-        jdbc.update("update producto set stock_actual = 0.2 where nombre like 'Top coat%'");           // se acaba esta semana
+        jdbc.update("update producto set stock_actual = 0.12 where nombre like 'Top coat%'");          // 3 clientas: no alcanza para mañana
         jdbc.update("update producto set stock_actual = 0.3 where nombre like 'Removedor de esmalte%'");
         jdbc.update("update producto set stock_actual = 1.6 where nombre like 'Base semipermanente%'");
         jdbc.update("update producto set stock_actual = 0, por_comprar = 1 where nombre like 'Algodón%'"); // en la lista
