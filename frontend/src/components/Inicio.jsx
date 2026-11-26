@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, Bell, Briefcase, CalendarCheck, MessageCircle, RefreshCw, ShoppingBag, TrendingDown, UserRound, Wallet } from 'lucide-react'
+import { AlertTriangle, Bell, Briefcase, CheckCircle2, ChevronDown, CalendarCheck, MessageCircle, RefreshCw, ShoppingBag, TrendingDown, UserRound, Wallet } from 'lucide-react'
 import { api } from '../api.js'
 import { aTexto, deTexto, hoy, hora12, pesos, sumarDias, nombreDia, diaMes } from '../fechas.js'
 
@@ -8,7 +8,6 @@ const diasEntre = (a, b) => Math.round((deTexto(b) - deTexto(a)) / 86400000)
 export default function Inicio({ ir, usuario }) {
   const [datos, setDatos] = useState(null)
   const [error, setError] = useState('')
-  const [listos, setListos] = useState({}) // lo que ya se metió al maletín (solo en esta pantalla)
 
   useEffect(() => {
     const h = hoy()
@@ -41,7 +40,9 @@ export default function Inicio({ ir, usuario }) {
   async function aLista(id) {
     try {
       await api.actualizar(id, { porComprar: 1 })
-      setDatos((d) => ({ ...d, prediccion: d.prediccion.map((x) => (x.productoId === id ? { ...x, enLista: true } : x)) }))
+      setDatos((d) => ({ ...d,
+        prediccion: d.prediccion.map((x) => (x.productoId === id ? { ...x, enLista: true } : x)),
+        maletin: d.maletin.map((x) => (x.productoId === id ? { ...x, enLista: true } : x)) }))
     } catch (e) { setError(e.message) }
   }
 
@@ -54,8 +55,17 @@ export default function Inicio({ ir, usuario }) {
   const deManana = activas.filter((c) => c.fecha === sumarDias(h, 1))
   const recontactar = datos.clientas.filter((c) => c.frecuenciaDias && c.ultimaCita && !c.proximaCita && diasEntre(c.ultimaCita, h) >= c.frecuenciaDias)
   const recordatorios = datos.clientas.filter((c) => c.recordatorioFecha && c.recordatorioFecha <= h)
+  // Maletín: solo lo que puede fallar mañana (no hay, o no alcanza para las clientas agendadas)
+  const problemas = datos.maletin.flatMap((i) => {
+    const p = datos.prediccion.find((x) => x.productoId === i.productoId)
+    const enLista = Boolean(i.enLista || p?.enLista || datos.faltantes.some((f) => f.id === i.productoId))
+    if (i.falta) return [{ ...i, tipo: 'NO_HAY', enLista }]
+    if (i.arreglos > 0 && p?.clientasRestantes != null && p.clientasRestantes < i.arreglos)
+      return [{ ...i, tipo: 'NO_ALCANZA', alcanza: p.clientasRestantes, enLista }]
+    return []
+  })
   // Por clientas: lo que se acaba en una semana (o que ya no alcanza para lo agendado) y aún no está en la lista
-  const seAcaban = datos.prediccion.filter((p) => p.modoControl === 'CONSUMO' && (p.estado === 'AGOTADO' || p.estado === 'PRONTO') && !p.enLista && !datos.faltantes.some((f) => f.id === p.productoId))
+  const seAcaban = datos.prediccion.filter((p) => p.modoControl === 'CONSUMO' && (p.estado === 'AGOTADO' || p.estado === 'PRONTO') && !p.enLista && !datos.faltantes.some((f) => f.id === p.productoId) && !problemas.some((m) => m.productoId === p.productoId))
   const mesActual = new Date().toLocaleDateString('es-CO', { month: 'long' })
 
   const texto = 'Lista de compras Mary Nails:\n' + datos.faltantes.map((p) => `- ${p.linea ? `${p.linea} ${p.codigo}` : p.nombre}`).join('\n')
@@ -78,7 +88,7 @@ export default function Inicio({ ir, usuario }) {
         ) : (
           <>
             <button className="kpi" onClick={() => ir('catalogo')}><RefreshCw size={20} /><strong>{datos.porRenovar.length}</strong><span>por renovar</span></button>
-            <button className="kpi" onClick={() => ir('agenda')}><Briefcase size={20} /><strong>{datos.maletin.filter((i) => i.falta).length}</strong><span>faltan para mañana</span></button>
+            <button className="kpi" onClick={() => ir('agenda')}><Briefcase size={20} /><strong>{problemas.length}</strong><span>faltan para mañana</span></button>
           </>
         )}
       </div>
@@ -146,25 +156,7 @@ export default function Inicio({ ir, usuario }) {
           )}
         </div>
 
-        <div className="panel">
-          <h3><Briefcase size={16} /> Maletín para mañana</h3>
-          {deManana.length === 0 && <p className="suave">Sin citas mañana; estos son los que no pueden faltar.</p>}
-          {datos.maletin.length === 0 && <p className="vacio">Nada que preparar.</p>}
-          <ul className="maletin">
-            {datos.maletin.map((i) => (
-              <li key={i.productoId} className={listos[i.productoId] ? 'listo' : ''}>
-                <label>
-                  <input type="checkbox" checked={Boolean(listos[i.productoId])} onChange={(e) => setListos((x) => ({ ...x, [i.productoId]: e.target.checked }))} />
-                  <span>{i.nombre}</span>
-                </label>
-                <span className="maletin-meta">
-                  <span className="suave">{i.arreglos > 0 ? `${i.arreglos} ${i.arreglos === 1 ? 'turno' : 'turnos'}` : 'no puede faltar'}</span>
-                  {i.falta && <em className="aviso">no hay</em>}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <MaletinManana citas={deManana} problemas={problemas} maletin={datos.maletin} onLista={aLista} />
       </div>
     </section>
   )
@@ -213,6 +205,54 @@ function PagosPendientes({ lista, onPagado }) {
           )
         })}
       </ul>
+    </div>
+  )
+}
+
+/**
+ * Maletín para mañana, pensado para que Mary lo entienda de un vistazo:
+ * solo avisa lo que no hay o lo que no alcanza para las clientas de mañana.
+ * Si todo está bien, lo dice en verde. La lista completa queda escondida por si la quiere ver.
+ */
+function MaletinManana({ citas, problemas, maletin, onLista }) {
+  const turnos = citas.reduce((n, c) => n + (c.turnos || 1), 0)
+  const plural = (n, a, b) => `${n} ${n === 1 ? a : b}`
+  return (
+    <div className="panel maletin-panel">
+      <h3><Briefcase size={16} /> Maletín para mañana</h3>
+      {citas.length === 0 ? (
+        <p className="maletin-ok"><CheckCircle2 size={22} /> Mañana no tienes citas.</p>
+      ) : (
+        <>
+          <p className="maletin-resumen">Mañana atiendes a <b>{plural(turnos, 'persona', 'personas')}</b>.</p>
+          {problemas.length === 0 ? (
+            <p className="maletin-ok"><CheckCircle2 size={22} /> Tienes todo lo que necesitas para mañana.</p>
+          ) : (
+            <>
+              <p className="maletin-titulo">{problemas.length === 1 ? 'Revisa esto antes de salir:' : `Revisa estas ${problemas.length} cosas antes de salir:`}</p>
+              <ul className="maletin-alertas">
+                {problemas.map((m) => (
+                  <li key={m.productoId} className={m.tipo === 'NO_HAY' ? 'mal' : 'aviso'}>
+                    <strong>{m.nombre}</strong>
+                    <span>{m.tipo === 'NO_HAY'
+                      ? 'No tienes. Cómpralo hoy.'
+                      : `Te alcanza para ${plural(m.alcanza, 'clienta', 'clientas')} y mañana tienes ${plural(m.arreglos, 'persona', 'personas')}.`}</span>
+                    {m.enLista
+                      ? <em className="ok">Ya está en la lista de compras</em>
+                      : <button className="boton" onClick={() => onLista(m.productoId)}>Agregar a la lista de compras</button>}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </>
+      )}
+      {maletin.length > 0 && (
+        <details className="maletin-todo">
+          <summary><ChevronDown size={14} /> Ver todo lo que lleva el maletín ({maletin.length})</summary>
+          <ul>{maletin.map((i) => <li key={i.productoId}>{i.nombre}</li>)}</ul>
+        </details>
+      )}
     </div>
   )
 }
