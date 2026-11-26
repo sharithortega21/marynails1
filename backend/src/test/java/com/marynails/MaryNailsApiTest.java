@@ -238,6 +238,17 @@ class MaryNailsApiTest {
         assertThat(pedir("GET", "/api/citas/pendientes", mary, null).cuerpo()).doesNotContain("Clienta Debe " + dia);
     }
 
+    @Test
+    @DisplayName("Mary puede crear un servicio con una tecnica nueva")
+    void tecnicaNueva() throws Exception {
+        String nombre = "Acrílico prueba " + diaLibre();
+        Respuesta r = pedir("POST", "/api/servicios", mary, "{\"nombre\":\"" + nombre
+                + "\",\"precio\":80000,\"familia\":\"Acrílico\",\"duracionMin\":120}");
+        assertThat(r.estado()).as(r.cuerpo()).isBetween(200, 201);
+        assertThat(r.json().get("familia").asString()).isEqualTo("Acrílico");
+        assertThat(pedir("POST", "/api/servicios", mary, "{\"nombre\":\"Sin tecnica\",\"precio\":1000,\"familia\":\"  \",\"duracionMin\":30}").estado()).isEqualTo(400);
+    }
+
     // ---------- compras y finanzas ----------
 
     @Test

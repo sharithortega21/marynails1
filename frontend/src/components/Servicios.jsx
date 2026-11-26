@@ -35,6 +35,10 @@ export default function Servicios() {
   const [confirmar, setConfirmar] = useState(null); // id que se quiere borrar
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
+  const [otraTecnica, setOtraTecnica] = useState(false); // escribir una tecnica nueva
+  // Tecnicas disponibles: las de siempre y las nuevas que Mary ya haya usado
+  const tecnicas = [...new Set([...FAMILIAS, ...servicios.map((s) => s.familia)])];
+  const nombreTecnica = (f) => TECNICA[f] || f;
 
   // GET /api/servicios (o /buscar si hay texto)
   function cargar() {
@@ -64,6 +68,7 @@ export default function Servicios() {
   function cancelar() {
     setEditando(null);
     setForm(VACIO);
+    setOtraTecnica(false);
   }
 
   // POST (crear) o PUT (actualizar)
@@ -141,16 +146,31 @@ export default function Servicios() {
         </label>
         <label>
           Técnica
-          <select
-            value={form.familia}
-            onChange={(e) => cambiar("familia", e.target.value)}
-          >
-            {FAMILIAS.map((f) => (
-              <option key={f} value={f}>
-                {TECNICA[f]}
-              </option>
-            ))}
-          </select>
+          {otraTecnica ? (
+            <input
+              autoFocus
+              maxLength={40}
+              placeholder="Ej.: Acrílico"
+              value={form.familia}
+              onChange={(e) => cambiar("familia", e.target.value)}
+              onBlur={() => { if (!form.familia.trim()) { setOtraTecnica(false); cambiar("familia", "TRADICIONAL"); } }}
+            />
+          ) : (
+            <select
+              value={form.familia}
+              onChange={(e) => {
+                if (e.target.value === "__otra") { setOtraTecnica(true); cambiar("familia", ""); }
+                else cambiar("familia", e.target.value);
+              }}
+            >
+              {tecnicas.map((f) => (
+                <option key={f} value={f}>
+                  {nombreTecnica(f)}
+                </option>
+              ))}
+              <option value="__otra">+ Otra técnica…</option>
+            </select>
+          )}
         </label>
         <label>
           Duración (min)
@@ -192,14 +212,14 @@ export default function Servicios() {
       </label>
 
       <div className="chips" role="group" aria-label="Ver servicios por técnica">
-        {["TODAS", ...FAMILIAS].map((f) => (
+        {["TODAS", ...tecnicas].map((f) => (
           <button
             key={f}
             type="button"
             className={familiaFiltro === f ? "chip activa" : "chip"}
             onClick={() => setFamiliaFiltro(f)}
           >
-            {f === "TODAS" ? "Todos" : TECNICA[f].split(" (")[0]}
+            {f === "TODAS" ? "Todos" : nombreTecnica(f).split(" (")[0]}
           </button>
         ))}
       </div>
@@ -213,7 +233,7 @@ export default function Servicios() {
             <div className="datos-servicio">
               <b>{s.nombre}</b>
               <small className="suave">
-                {TECNICA[s.familia] || s.familia} · {s.duracionMin} min
+                {nombreTecnica(s.familia)} · {s.duracionMin} min
               </small>
             </div>
             <strong>{pesos(s.precio)}</strong>
