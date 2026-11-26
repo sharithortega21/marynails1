@@ -38,7 +38,7 @@
 
 **8. Sharith (30 s).** Entrar con su cuenta: ve inicio, catálogo y compras; la agenda **solo para consultar**, sin teléfonos, valores ni datos de salud. No ve clientas ni finanzas.
 
-**9. Cierre (20 s).** Funciona en el celular. Tecnología: React, Spring Boot, PostgreSQL; publicado en Cloudflare, Render y Supabase; 16 pruebas automáticas en cada cambio.
+**9. Cierre (20 s).** Funciona en el celular. Tecnología: React, Spring Boot, PostgreSQL; publicado en Cloudflare, Render y Supabase; 17 pruebas automáticas en cada cambio.
 
 ## Si algo falla
 - «Algo salió mal» al entrar: esperar un minuto (Render despertando) y volver a intentar.

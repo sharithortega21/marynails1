@@ -177,7 +177,7 @@ INSERT INTO cliente (id, nombre, telefono, direccion, sector_id, frecuencia_dias
   (19, 'Karen Medina', '3001112212', 'Calle 20 # 9-31', 5, 15, 'Siempre semipermanente');
 
 INSERT INTO producto (id, nombre, categoria, modo_control, presentacion, unidad, rendimiento, stock_actual, stock_minimo, es_habitual, es_critico, imagen_url, cantidad_habitual, por_comprar) VALUES
-  (1, 'Base semipermanente (Rubber o 7 en 1)', 'Semipermanente', 'CONSUMO', NULL, NULL, 25.00, 0.00, 0.00, FALSE, TRUE, NULL, 0.00, 0.00),
+  (1, 'Base Rubber', 'Semipermanente', 'CONSUMO', NULL, NULL, 25.00, 0.00, 0.00, FALSE, TRUE, NULL, 0.00, 0.00),
   (2, 'Primer', 'Semipermanente', 'TIEMPO', NULL, NULL, 45.00, 0.00, 0.00, FALSE, FALSE, NULL, 0.00, 0.00),
   (3, 'Super bond', 'Semipermanente', 'TIEMPO', NULL, NULL, 45.00, 0.00, 0.00, FALSE, FALSE, NULL, 0.00, 0.00),
   (4, 'Top coat (brillo semipermanente)', 'Semipermanente', 'CONSUMO', NULL, NULL, 25.00, 0.00, 0.00, FALSE, FALSE, NULL, 0.00, 0.00),
