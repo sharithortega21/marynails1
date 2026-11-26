@@ -350,7 +350,7 @@ public class DemoService implements ApplicationRunner {
                 + "where not exists (select 1 from color c where c.producto_id = p.id)");
         jdbc.update("update producto set stock_actual = 0.12 where nombre like 'Top coat%'");          // 3 clientas: no alcanza para mañana
         jdbc.update("update producto set stock_actual = 0.3 where nombre like 'Removedor de esmalte%'");
-        jdbc.update("update producto set stock_actual = 1.6 where nombre like 'Base semipermanente%'");
+        jdbc.update("update producto set stock_actual = 1.6 where nombre like 'Base Rubber%' or nombre like 'Base 7 en 1%'");
         jdbc.update("update producto set stock_actual = 0, por_comprar = 1 where nombre like 'Algodón%'"); // en la lista
         jdbc.update("update producto set en_uso_desde = ? where nombre = 'Lima 180'", Date.valueOf(hoy.minusDays(19)));
         jdbc.update("update producto set en_uso_desde = ? where nombre = 'Lima metálica'", Date.valueOf(hoy.minusDays(44)));
@@ -364,7 +364,7 @@ public class DemoService implements ApplicationRunner {
 
         // Dos compras anteriores (entran al inventario y a finanzas)
         compra(hoy.minusDays(10), "Distribuidora Tiffany Cúcuta",
-                new Object[][] {{"Top coat (brillo semipermanente)", 1, 18000}, {"Lima 180", 2, 3500}, {"Base semipermanente (Rubber o 7 en 1)", 1, 22000}});
+                new Object[][] {{"Top coat (brillo semipermanente)", 1, 18000}, {"Lima 180", 2, 3500}, {"Base Rubber", 1, 22000}});
         compra(hoy.minusDays(24), "Masglo Centro",
                 new Object[][] {{"Removedor de esmalte (acetona)", 1, 9000}, {"Lima metálica", 1, 12000}});
 

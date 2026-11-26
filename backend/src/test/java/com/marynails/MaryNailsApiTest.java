@@ -314,7 +314,7 @@ class MaryNailsApiTest {
     @Test
     @DisplayName("Por clientas: quedan stock x clientas que dura, y avisa cuando se acaba")
     void prediccionPorClientas() throws Exception {
-        long base = producto("Base semipermanente (Rubber o 7 en 1)"); // dura 25 clientas
+        long base = producto("Base Rubber"); // dura 25 clientas
         pedir("PATCH", "/api/productos/" + base, mary, "{\"stockActual\":2}");
         JsonNode lista = pedir("GET", "/api/prediccion", sharith, null).json();
         JsonNode fila = null;
@@ -326,5 +326,18 @@ class MaryNailsApiTest {
         for (JsonNode n : pedir("GET", "/api/prediccion", mary, null).json()) {
             if (n.get("productoId").asLong() == base) assertThat(n.get("estado").asString()).isEqualTo("AGOTADO");
         }
+    }
+
+    @Test
+    @DisplayName("Base Rubber y Base 7 en 1 son dos productos: semipermanente usa Rubber y soft gel la 7 en 1")
+    void basesSeparadas() {
+        long rubber = producto("Base Rubber"), sieteEnUno = producto("Base 7 en 1 (Tiffany)");
+        String usa = "select count(*) from receta where servicio_id = ? and producto_id = ?";
+        long semi = servicio("Semipermanente dama (solo manos)"), soft = servicio("Soft gel (solo mano)");
+        assertThat(jdbc.queryForObject(usa, Integer.class, semi, rubber)).isEqualTo(1);
+        assertThat(jdbc.queryForObject(usa, Integer.class, semi, sieteEnUno)).isZero();
+        assertThat(jdbc.queryForObject(usa, Integer.class, soft, sieteEnUno)).isEqualTo(1);
+        assertThat(jdbc.queryForObject(usa, Integer.class, soft, rubber)).isZero();
+        assertThat(jdbc.queryForObject("select count(*) from producto where nombre like 'Base semipermanente%'", Integer.class)).isZero();
     }
 }
