@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, Plus, MessageCircle, Clock, MapPin, Home, CalendarPlus, HeartPulse } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, MessageCircle, Clock, MapPin, Home, CalendarPlus, HeartPulse, Wallet } from 'lucide-react'
 import { api } from '../api.js'
 import { avisoHorario, diaMes, hora12, hoy, lunesDe, nombreDia, pesos, sumarDias } from '../fechas.js'
 import CupoLibre from './CupoLibre.jsx'
@@ -40,6 +40,10 @@ function CitaTarjeta({ c, onCambiar, onBorrar, soloVer }) {
   const [valor, setValor] = useState(Number(c.precioCobrado) + Number(c.extraDiseno))
   const [extra, setExtra] = useState(Number(c.extraDiseno))
   const [medio, setMedio] = useState(c.medioPago || 'EFECTIVO')
+  const total = Number(c.precioCobrado) + Number(c.extraDiseno)
+  const debe = c.estado === 'ATENDIDA' && c.valorPagado != null ? Math.max(0, total - Number(c.valorPagado)) : 0
+  // Como pagó: todo, una parte, o "te pago al rato" (queda pendiente)
+  const [forma, setForma] = useState(c.estado === 'ATENDIDA' && debe > 0 ? (Number(c.valorPagado) > 0 ? 'parte' : 'despues') : 'todo')
   const [fecha, setFecha] = useState(c.fecha)
   const [hora, setHora] = useState(c.hora.slice(0, 5))
   const [turnos, setTurnos] = useState(c.turnos)
@@ -62,9 +66,14 @@ function CitaTarjeta({ c, onCambiar, onBorrar, soloVer }) {
         <div className="cita-servicio">{c.turnos > 1 && <b>{c.turnos} turnos · </b>}{c.servicio} <span className="suave">· unos {c.duracionMin * c.turnos} min{c.precioCobrado != null && ` · ${pesos(Number(c.precioCobrado) + Number(c.extraDiseno))}`}</span></div>
         {c.observaciones && <div className="suave nota">“{c.observaciones}”</div>}
         {c.salud && <div className="salud-cita" role="note"><HeartPulse size={14} aria-hidden="true" /> Salud: {c.salud}</div>}
-        {c.estado === 'ATENDIDA' && c.valorPagado != null && (
-          <div className="pago">Pagó {pesos(c.valorPagado)}{c.medioPago ? ` · ${MEDIOS[c.medioPago] || c.medioPago}` : ''}
-            {Number(c.valorPagado) < Number(c.precioCobrado) + Number(c.extraDiseno) && <b> · debe {pesos(Number(c.precioCobrado) + Number(c.extraDiseno) - Number(c.valorPagado))}</b>}
+        {c.estado === 'ATENDIDA' && c.valorPagado != null && debe === 0 && (
+          <div className="pago">Pagó {pesos(c.valorPagado)}{c.medioPago ? ` · ${MEDIOS[c.medioPago] || c.medioPago}` : ''}</div>
+        )}
+        {debe > 0 && (
+          <div className="pago-pendiente" role="note">
+            <Wallet size={14} aria-hidden="true" /> Pendiente por pago: <b>{pesos(debe)}</b>
+            {Number(c.valorPagado) > 0 && <span> (abonó {pesos(c.valorPagado)})</span>}
+            {!soloVer && modo === '' && <button className="enlace-boton" onClick={() => { setForma('todo'); setValor(total); setModo('cobro') }}>Ya pagó</button>}
           </div>
         )}
 
@@ -84,7 +93,12 @@ function CitaTarjeta({ c, onCambiar, onBorrar, soloVer }) {
         )}
 
         {modo === 'cobro' && (
-          <form className="mini-form" onSubmit={(e) => { e.preventDefault(); onCambiar(c.id, { estado: 'ATENDIDA', extraDiseno: extra, valorPagado: valor, medioPago: medio }); setModo('') }}>
+          <form className="mini-form" onSubmit={(e) => {
+            e.preventDefault()
+            const pagado = forma === 'todo' ? Number(c.precioCobrado) + extra : forma === 'despues' ? 0 : valor
+            onCambiar(c.id, { estado: 'ATENDIDA', extraDiseno: extra, valorPagado: pagado, medioPago: forma === 'despues' ? '' : medio })
+            setModo('')
+          }}>
             <div className="extra-diseno">
               <span>Extra por diseño: <b>{pesos(extra)}</b></span>
               <div className="acciones">
@@ -95,8 +109,14 @@ function CitaTarjeta({ c, onCambiar, onBorrar, soloVer }) {
               <input type="range" min="0" max="50000" step="1000" value={extra} aria-label="Ajustar extra por diseño"
                      onChange={(e) => { const v = Number(e.target.value); setValor(Number(valor) - extra + v); setExtra(v) }} />
             </div>
-            <label>Pagó<input type="number" min="0" step="1000" value={valor} onChange={(e) => setValor(Number(e.target.value))} /></label>
-            <label>Medio<select value={medio} onChange={(e) => setMedio(e.target.value)}><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option><option value="MIXTO">Mixto (efectivo y transferencia)</option></select></label>
+            <div className="forma-pago" role="group" aria-label="¿Cómo pagó?">
+              {[['todo', `Pagó todo (${pesos(Number(c.precioCobrado) + extra)})`], ['parte', 'Pagó una parte'], ['despues', 'Paga después']].map(([v, t]) => (
+                <button type="button" key={v} className={forma === v ? 'chip activa' : 'chip'} onClick={() => setForma(v)}>{t}</button>
+              ))}
+            </div>
+            {forma === 'parte' && <label>¿Cuánto pagó?<input type="number" min="0" step="1000" value={valor} onChange={(e) => setValor(Number(e.target.value))} /></label>}
+            {forma === 'despues' && <p className="suave">Queda en «Pagos pendientes» en Inicio hasta que marques «Ya pagó».</p>}
+            {forma !== 'despues' && <label>Medio<select value={medio} onChange={(e) => setMedio(e.target.value)}><option value="EFECTIVO">Efectivo</option><option value="TRANSFERENCIA">Transferencia</option><option value="MIXTO">Mixto (efectivo y transferencia)</option></select></label>}
             <div className="acciones"><button className="primario pequeno" type="submit">Guardar</button><button type="button" className="secundario pequeno" onClick={() => setModo('')}>Cancelar</button></div>
           </form>
         )}

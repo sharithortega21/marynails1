@@ -3,6 +3,7 @@ import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { api } from "../api.js";
 import { pesos } from "../fechas.js";
 
+// Tecnica con que se hace el servicio (en la base se llama "familia")
 const FAMILIAS = [
   "TRADICIONAL",
   "SEMIPERMANENTE",
@@ -10,6 +11,13 @@ const FAMILIAS = [
   "SOFT_GEL",
   "RESINA",
 ];
+const TECNICA = {
+  TRADICIONAL: "Tradicional",
+  SEMIPERMANENTE: "Semipermanente",
+  MIXTO: "Mixto (manos semi + pies tradicional)",
+  SOFT_GEL: "Soft gel",
+  RESINA: "Resina",
+};
 const VACIO = {
   nombre: "",
   precio: "",
@@ -109,6 +117,7 @@ export default function Servicios() {
     <section>
       <div className="encabezado">
         <h2>Servicios</h2>
+        <p className="suave">Lo que ofrece Mary: nombre, precio por persona, técnica y cuánto se demora. El precio y la duración se usan al agendar.</p>
       </div>
 
       <form className="form-servicio" onSubmit={guardar}>
@@ -131,14 +140,14 @@ export default function Servicios() {
           />
         </label>
         <label>
-          Familia
+          Técnica
           <select
             value={form.familia}
             onChange={(e) => cambiar("familia", e.target.value)}
           >
             {FAMILIAS.map((f) => (
               <option key={f} value={f}>
-                {f}
+                {TECNICA[f]}
               </option>
             ))}
           </select>
@@ -182,20 +191,18 @@ export default function Servicios() {
         />
       </label>
 
-      <label>
-        Familia
-        <select
-          value={familiaFiltro}
-          onChange={(e) => setFamiliaFiltro(e.target.value)}
-        >
-          <option value="TODAS">Todas</option>
-          {FAMILIAS.map((f) => (
-            <option key={f} value={f}>
-              {f}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="chips" role="group" aria-label="Ver servicios por técnica">
+        {["TODAS", ...FAMILIAS].map((f) => (
+          <button
+            key={f}
+            type="button"
+            className={familiaFiltro === f ? "chip activa" : "chip"}
+            onClick={() => setFamiliaFiltro(f)}
+          >
+            {f === "TODAS" ? "Todos" : TECNICA[f].split(" (")[0]}
+          </button>
+        ))}
+      </div>
 
       {visibles.length === 0 && (
         <p className="vacio">No hay servicios para mostrar.</p>
@@ -206,7 +213,7 @@ export default function Servicios() {
             <div className="datos-servicio">
               <b>{s.nombre}</b>
               <small className="suave">
-                {s.familia} · {s.duracionMin} min
+                {TECNICA[s.familia] || s.familia} · {s.duracionMin} min
               </small>
             </div>
             <strong>{pesos(s.precio)}</strong>

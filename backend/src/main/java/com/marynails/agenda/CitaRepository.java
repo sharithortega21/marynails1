@@ -28,6 +28,10 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     @Query(CAMPOS + " where c.clienteId = :clienteId order by c.fecha desc, c.hora desc")
     List<CitaDto> deClienta(@Param("clienteId") Long clienteId);
 
+    /** Citas atendidas que la clienta no ha pagado completas ("te pago al rato"), de la mas vieja a la mas nueva. */
+    @Query(CAMPOS + " where c.estado = 'ATENDIDA' and c.valorPagado < c.precioCobrado + c.extraDiseno order by c.fecha, c.hora")
+    List<CitaDto> pendientesDePago();
+
     @Query(CAMPOS + " where c.id = :id")
     CitaDto detalle(@Param("id") Long id);
 }

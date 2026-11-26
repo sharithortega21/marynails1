@@ -225,6 +225,19 @@ class MaryNailsApiTest {
         assertThat(stock(top)).isEqualByComparingTo(antes);
     }
 
+    @Test
+    @DisplayName("Una cita atendida sin pagar sale en pagos pendientes hasta que paga")
+    void pagosPendientes() throws Exception {
+        LocalDate dia = diaLibre();
+        long c = nuevaClienta("Clienta Debe " + dia);
+        long cita = nuevaCita(c, servicio("Uñas tradicional dama (manos y pies)"), dia, "09:00").json().get("id").asLong();
+        pedir("PATCH", "/api/citas/" + cita, mary, "{\"estado\":\"ATENDIDA\",\"valorPagado\":0,\"medioPago\":\"\"}");
+        assertThat(pedir("GET", "/api/citas/pendientes", mary, null).cuerpo()).contains("Clienta Debe " + dia);
+        assertThat(pedir("GET", "/api/citas/pendientes", sharith, null).estado()).isEqualTo(403);
+        pedir("PATCH", "/api/citas/" + cita, mary, "{\"valorPagado\":35000,\"medioPago\":\"TRANSFERENCIA\"}");
+        assertThat(pedir("GET", "/api/citas/pendientes", mary, null).cuerpo()).doesNotContain("Clienta Debe " + dia);
+    }
+
     // ---------- compras y finanzas ----------
 
     @Test

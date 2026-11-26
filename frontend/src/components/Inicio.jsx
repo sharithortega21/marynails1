@@ -18,8 +18,9 @@ export default function Inicio({ ir, usuario }) {
     Promise.all([api.citas(h, sumarDias(h, 1)), api.listaCompras(),
       esMary ? api.clientas() : Promise.resolve([]),
       esMary ? api.resumen(mes, finMes) : Promise.resolve(null),
-      api.porRenovar(), api.maletin(sumarDias(h, 1)), api.prediccion()])
-      .then(([citas, faltantes, clientas, resumen, porRenovar, maletin, prediccion]) => setDatos({ citas, faltantes, clientas, resumen, porRenovar, maletin, prediccion }))
+      api.porRenovar(), api.maletin(sumarDias(h, 1)), api.prediccion(),
+      esMary ? api.pagosPendientes() : Promise.resolve([])])
+      .then(([citas, faltantes, clientas, resumen, porRenovar, maletin, prediccion, pendientes]) => setDatos({ citas, faltantes, clientas, resumen, porRenovar, maletin, prediccion, pendientes }))
       .catch((e) => setError(e.message))
   }, [usuario?.rol])
 
@@ -81,6 +82,8 @@ export default function Inicio({ ir, usuario }) {
           </>
         )}
       </div>
+
+      {datos.pendientes.length > 0 && <PagosPendientes lista={datos.pendientes} onPagado={(id) => setDatos((d) => ({ ...d, pendientes: d.pendientes.filter((x) => x.id !== id) }))} />}
 
       <div className="dos-columnas">
         <div className="panel">
@@ -167,3 +170,49 @@ export default function Inicio({ ir, usuario }) {
   )
 }
 
+/** Clientas que dijeron "te pago al rato": bien visibles para que Mary no se olvide de cobrar. */
+function PagosPendientes({ lista, onPagado }) {
+  const [cobrando, setCobrando] = useState(null)
+  const [error, setError] = useState('')
+  const total = lista.reduce((a, c) => a + Number(c.precioCobrado) + Number(c.extraDiseno) - Number(c.valorPagado), 0)
+
+  async function pagado(c, medio) {
+    setError('')
+    try {
+      await api.cambiarCita(c.id, { valorPagado: Number(c.precioCobrado) + Number(c.extraDiseno), medioPago: medio })
+      onPagado(c.id); setCobrando(null)
+    } catch (e) { setError(e.message) }
+  }
+
+  return (
+    <div className="panel pendientes-panel">
+      <h3><Wallet size={16} /> Pagos pendientes · {pesos(total)}</h3>
+      {error && <p className="error" role="alert">{error}</p>}
+      <ul className="mini pendientes">
+        {lista.map((c) => {
+          const debe = Number(c.precioCobrado) + Number(c.extraDiseno) - Number(c.valorPagado)
+          const tel = (c.telefono || '').replace(/\D/g, '')
+          const wa = tel ? `https://wa.me/${tel.length === 10 ? '57' + tel : tel}?text=${encodeURIComponent(`Hola ${c.cliente.split(' ')[0]}, te escribe Mary. Te recuerdo el pago de ${pesos(debe)} de las uñas del ${nombreDia(c.fecha).toLowerCase()} ${diaMes(c.fecha)}. ¡Gracias!`)}` : null
+          return (
+            <li key={c.id}>
+              <span><b>{c.cliente}</b> · {nombreDia(c.fecha).toLowerCase()} {diaMes(c.fecha)}</span>
+              <em className="aviso">debe {pesos(debe)}</em>
+              {cobrando === c.id ? (
+                <span className="forma-pago">
+                  <button className="primario pequeno" onClick={() => pagado(c, 'EFECTIVO')}>Efectivo</button>
+                  <button className="primario pequeno" onClick={() => pagado(c, 'TRANSFERENCIA')}>Transferencia</button>
+                  <button className="enlace-boton" onClick={() => setCobrando(null)}>Cancelar</button>
+                </span>
+              ) : (
+                <span className="forma-pago">
+                  {wa && <a className="secundario pequeno" href={wa} target="_blank" rel="noreferrer">Recordarle</a>}
+                  <button className="enlace-boton renovar-hoy" onClick={() => setCobrando(c.id)}>Ya pagó</button>
+                </span>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
