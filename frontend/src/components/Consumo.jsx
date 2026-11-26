@@ -15,7 +15,7 @@ function cuando(p) {
   if (p.diasRestantes == null) return 'Sin citas que lo usen: no se puede calcular'
   if (p.diasRestantes <= 0) return 'Ya no queda'
   if (p.diasRestantes === 1) return 'Se acaba mañana'
-  if (p.diasRestantes <= 7) return `Se acaba el ${nombreDia(p.seAcaba)} ${diaMes(p.seAcaba)}`
+  if (p.diasRestantes <= 7) return `Se acaba el ${nombreDia(p.seAcaba).toLowerCase()} ${diaMes(p.seAcaba)}`
   return `Se acaba cerca del ${diaMes(p.seAcaba)} (en ${p.diasRestantes} días)`
 }
 
